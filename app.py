@@ -5,6 +5,11 @@ import plotly.graph_objects as go
 import numpy as np
 from datetime import datetime, timedelta
 import warnings
+import base64
+from PIL import Image
+import io
+import requests
+
 warnings.filterwarnings('ignore')
 
 st.set_page_config(
@@ -27,7 +32,6 @@ st.markdown("""
         background: linear-gradient(135deg, #f5f7fa 0%, #ffffff 100%);
     }
     
-    /* Header principal */
     .main-header {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         padding: 2rem;
@@ -44,7 +48,6 @@ st.markdown("""
         to { opacity: 1; transform: translateY(0); }
     }
     
-    /* Cartes modernes */
     .metric-card {
         background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
         padding: 1.5rem;
@@ -76,7 +79,6 @@ st.markdown("""
         font-weight: 500;
     }
     
-    /* Alertes */
     .alert-critical {
         background: linear-gradient(135deg, #ff6b6b 0%, #ee5a5a 100%);
         border-left: 4px solid #dc3545;
@@ -150,61 +152,10 @@ st.markdown("""
         transform: translateY(-2px);
         box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
     }
-    
-    /* Style pour le logo */
-    .sidebar-logo {
-        text-align: center;
-        margin-bottom: 20px;
-        padding: 10px;
-    }
-    .sidebar-logo img {
-        width: 80px;
-        height: 80px;
-        border-radius: 20px;
-        object-fit: cover;
-        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
-        border: 2px solid rgba(102, 126, 234, 0.3);
-    }
-    
-    /* Style pour la page login */
-    .login-container {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        min-height: 100vh;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    }
-    .login-card {
-        background: white;
-        padding: 2rem;
-        border-radius: 1rem;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-        text-align: center;
-        width: 100%;
-        max-width: 400px;
-    }
-    .login-logo {
-        width: 100px;
-        height: 100px;
-        border-radius: 50%;
-        margin-bottom: 1rem;
-        border: 3px solid #667eea;
-    }
-    .login-title {
-        font-size: 1.5rem;
-        font-weight: 700;
-        color: #1e293b;
-        margin-bottom: 0.5rem;
-    }
-    .login-subtitle {
-        color: #64748b;
-        margin-bottom: 1.5rem;
-    }
 </style>
 """, unsafe_allow_html=True)
 
 # ==================== LOGIN SYSTEM ====================
-# Configuration des utilisateurs (Manager RH)
 USERS = {
     "drh": "drh123"
 }
@@ -215,27 +166,16 @@ if "username" not in st.session_state:
     st.session_state.username = ""
 
 def show_login():
-    # URL du logo (remplacez par votre URL)
-    LOGO_URL = "https://raw.githubusercontent.com/souhaferjani-glitch/RH-Dashboard/main/logo.png"
-    
     st.markdown("""
     <div style="display: flex; justify-content: center; align-items: center; min-height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-        <div style="background: white; padding: 2rem; border-radius: 1rem; box-shadow: 0 10px 30px rgba(0,0,0,0.2); text-align: center; width: 100%; max-width: 400px;">
+        <div style="background: white; padding: 2.5rem; border-radius: 1.5rem; box-shadow: 0 20px 40px rgba(0,0,0,0.2); text-align: center; width: 100%; max-width: 420px;">
+            <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 20px; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 1rem;">
+                <span style="font-size: 2.5rem;">📊</span>
+            </div>
+            <h2 style="color: #1e293b; margin: 0;">RH Dashboard</h2>
+            <p style="color: #64748b; margin-bottom: 1.5rem;">La Pratique Electronique</p>
     """, unsafe_allow_html=True)
     
-    # Logo dans la page login
-    st.markdown(f"""
-    <div style="text-align: center;">
-        <img src="{LOGO_URL}" style="width: 100px; height: 100px; border-radius: 50%; margin-bottom: 1rem; border: 3px solid #667eea;" 
-             onerror="this.style.display='none'; this.parentElement.innerHTML='<div style=\'width:100px;height:100px;background:#667eea;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;margin-bottom:1rem\'><span style=\'font-size:2.5rem;color:white\'>📊</span></div>'">
-        <h2 style="color: #1e293b;">RH Dashboard</h2>
-        <p style="color: #64748b;">La Pratique Electronique</p>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    st.markdown("---")
-    
-    # Champs de connexion
     username = st.text_input("👤 Nom d'utilisateur", placeholder="rhmanager", key="login_user")
     password = st.text_input("🔒 Mot de passe", placeholder="••••••••", type="password", key="login_pass")
     
@@ -250,12 +190,11 @@ def show_login():
                 st.error("❌ Nom d'utilisateur ou mot de passe incorrect")
     
     st.markdown("""
-    <div style="margin-top: 1rem; text-align: center;">
+    <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid #e2e8f0;">
         <p style="color: #94a3b8; font-size: 0.7rem;">Contactez l'administrateur pour obtenir vos accès</p>
     </div>
+    </div></div>
     """, unsafe_allow_html=True)
-    
-    st.markdown("</div></div>", unsafe_allow_html=True)
     
     return False
 
@@ -376,14 +315,13 @@ for service in actifs['Service'].unique():
 date_limite = datetime.now() + timedelta(days=30)
 contrats_alertes = contrats_expiration[contrats_expiration['Date_Fin'] <= date_limite]
 
-# ==================== SIDEBAR AVEC LOGO ====================
+# ==================== SIDEBAR ====================
 with st.sidebar:
-    # Logo dans le sidebar
-    LOGO_URL = "https://raw.githubusercontent.com/souhaferjani-glitch/RH-Dashboard/main/logo.png"
-    
-    st.markdown(f"""
-    <div class="sidebar-logo">
-        <img src="{LOGO_URL}" alt="Logo">
+    st.markdown("""
+    <div style="text-align: center; margin-bottom: 20px; padding: 10px;">
+        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); width: 70px; height: 70px; border-radius: 20px; margin: 0 auto; display: flex; align-items: center; justify-content: center;">
+            <span style="font-size: 2rem;">📊</span>
+        </div>
         <h3 style="color: #667eea; margin: 10px 0 0 0;">RH Dashboard</h3>
         <p style="color: #6c757d; font-size: 0.7rem;">La Pratique Electronique</p>
     </div>
@@ -391,7 +329,7 @@ with st.sidebar:
     
     st.markdown("---")
     
-    # Informations utilisateur connecté
+    # Information utilisateur
     st.markdown(f"""
     <div style="background: #f0f2f6; padding: 10px; border-radius: 10px; margin-bottom: 10px;">
         <div style="display: flex; align-items: center; gap: 10px;">
@@ -421,7 +359,6 @@ with st.sidebar:
     
     st.markdown("---")
     
-    # Bouton de déconnexion
     if st.button("🚪 Déconnexion", use_container_width=True):
         st.session_state.logged_in = False
         st.session_state.username = ""
@@ -540,13 +477,8 @@ elif page == "📈 Mouvements":
         st.metric("⚖️ Licenciement", mouvements['Sorties_Lice'].sum())
     
     st.subheader("📊 Taux de départ en première année")
-    st.markdown(f"""
-    <div class="metric-card">
-        <div class="metric-value">{taux_depart_1ere:.1f}%</div>
-        <div class="metric-label">Objectif: < 20%</div>
-        <progress value="{taux_depart_1ere}" max="100" style="width: 100%; height: 8px; border-radius: 4px;"></progress>
-    </div>
-    """, unsafe_allow_html=True)
+    st.metric("Taux", f"{taux_depart_1ere:.1f}%", delta="Objectif <20%")
+    st.progress(min(taux_depart_1ere/100, 1.0))
 
 # ==================== PAGE TALENTS ====================
 elif page == "⭐ Talents":
@@ -554,11 +486,11 @@ elif page == "⭐ Talents":
     
     col1, col2 = st.columns(2)
     with col1:
-        st.markdown(f'<div class="metric-card"><div class="metric-value">{len(promotions)}</div><div class="metric-label">⭐ Total Promotions</div></div>', unsafe_allow_html=True)
+        st.metric("⭐ Total Promotions", len(promotions))
         st.dataframe(promotions, use_container_width=True)
     with col2:
-        st.markdown(f'<div class="metric-card"><div class="metric-value">{delai_promotion:.1f}</div><div class="metric-label">⏱️ Délai moyen de promotion (ans)</div><div class="trend-up">Objectif: {"✓" if delai_promotion < 3 else "< 3 ans"}</div></div>', unsafe_allow_html=True)
-        st.markdown(f'<div class="metric-card"><div class="metric-value">{len(promotions)}</div><div class="metric-label">🔄 Mobilité interne</div><div class="metric-label">Période: 2024-2025</div></div>', unsafe_allow_html=True)
+        st.metric("⏱️ Délai moyen de promotion", f"{delai_promotion:.1f} ans")
+        st.metric("🔄 Mobilité interne", f"{len(promotions)} changements")
     
     if len(promotions) > 0:
         promotions_par_annee = promotions.groupby(promotions['Date_Promot'].dt.year).size().reset_index(name='Nombre')
@@ -572,16 +504,15 @@ elif page == "⚙️ Administration":
     st.markdown('<div class="main-header"><h1>⚙️ Gestion Administrative</h1><p>Suivi des indicateurs administratifs RH</p></div>', unsafe_allow_html=True)
     
     st.subheader("📊 Taux de réponse aux questionnaires")
-    taux_reponse_moyen = questionnaires['Taux_Reponse'].mean()
     col1, col2, col3 = st.columns(3)
     with col1:
-        st.metric("Taux moyen", f"{taux_reponse_moyen:.1f}%")
+        st.metric("Taux moyen", f"{questionnaires['Taux_Reponse'].mean():.1f}%")
     with col2:
         st.metric("Questionnaires diffusés", questionnaires['Nb_Diffuses'].sum())
     with col3:
         st.metric("Réponses reçues", questionnaires['Nb_Reponses'].sum())
     
-    fig = px.line(questionnaires, x='Periode', y='Taux_Reponse', title="Évolution du taux de participation", markers=True)
+    fig = px.line(questionnaires, x='Periode', y='Taux_Reponse', title="Évolution du taux de réponse", markers=True)
     fig.add_hline(y=75, line_dash="dash", line_color="#f59e0b")
     st.plotly_chart(fig, use_container_width=True)
     
@@ -597,15 +528,15 @@ elif page == "⚙️ Administration":
     fig = go.Figure()
     fig.add_trace(go.Bar(x=entretiens['Annee'], y=entretiens['Taux_Realisation'], text=entretiens['Taux_Realisation'], texttemplate='%{text:.1f}%'))
     fig.add_hline(y=80, line_dash="dash", line_color="#ef4444")
-    fig.update_layout(title="Taux de réalisation des entretiens annuels", height=400)
+    fig.update_layout(title="Taux de réalisation des entretiens", height=400)
     st.plotly_chart(fig, use_container_width=True)
     
     st.subheader("⚠️ Contrats arrivant à expiration (30 jours)")
     if len(contrats_alertes) > 0:
-        st.markdown(f'<div class="alert-critical">🚨 {len(contrats_alertes)} contrat(s) expire(nt) dans les 30 jours</div>', unsafe_allow_html=True)
+        st.error(f"🚨 {len(contrats_alertes)} contrat(s) expire(nt) dans les 30 jours")
         st.dataframe(contrats_alertes, use_container_width=True)
     else:
-        st.markdown('<div class="success-card">✅ Aucun contrat n\'expire dans les 30 jours</div>', unsafe_allow_html=True)
+        st.success("✅ Aucun contrat n'expire dans les 30 jours")
     
     st.subheader("⚖️ Sanctions disciplinaires")
     col1, col2 = st.columns(2)
@@ -627,65 +558,43 @@ elif page == "🎯 KPIs":
     
     col1, col2 = st.columns(2)
     with col1:
-        fig = go.Figure(go.Indicator(
-            mode="gauge+number",
-            value=qualite,
-            title={'text': "Qualité des recrutements"},
-            gauge={'axis': {'range': [0, 100]}, 'bar': {'color': "#51cf66"},
-                   'steps': [{'range': [0, 50], 'color': '#ff6b6b'},
-                             {'range': [50, 80], 'color': '#ffd93d'},
-                             {'range': [80, 100], 'color': '#51cf66'}]}))
-        fig.update_layout(height=400)
+        fig = go.Figure(go.Indicator(mode="gauge+number", value=qualite, title="Qualité des recrutements", gauge={'axis': {'range': [0, 100]}, 'bar': {'color': "#10b981"}}))
         st.plotly_chart(fig, use_container_width=True)
-    
     with col2:
-        fig = go.Figure(go.Indicator(
-            mode="gauge+number",
-            value=fuite_cadres,
-            title={'text': "Fuite des compétences"},
-            gauge={'axis': {'range': [0, 30]}, 'bar': {'color': "#ff6b6b"},
-                   'steps': [{'range': [0, 5], 'color': '#51cf66'},
-                             {'range': [5, 10], 'color': '#ffd93d'},
-                             {'range': [10, 30], 'color': '#ff6b6b'}]}))
-        fig.update_layout(height=400)
+        fig = go.Figure(go.Indicator(mode="gauge+number", value=fuite_cadres, title="Fuite des compétences", gauge={'axis': {'range': [0, 30]}, 'bar': {'color': "#ef4444"}}))
         st.plotly_chart(fig, use_container_width=True)
     
     st.subheader("🎯 Score de risque par service")
     st.dataframe(pd.DataFrame(services_risque), use_container_width=True)
     
-    fig = px.bar(pd.DataFrame(services_risque), x='Service', y='Score Risque', 
-                 title="Score de risque par service", color='Score Risque',
-                 color_continuous_scale=['#51cf66', '#ffd93d', '#ff6b6b'])
+    fig = px.bar(pd.DataFrame(services_risque), x='Service', y='Score Risque', title="Score de risque par service", color='Score Risque', color_continuous_scale=['#10b981', '#f59e0b', '#ef4444'])
     st.plotly_chart(fig, use_container_width=True)
 
 # ==================== PAGE ALERTES ====================
 elif page == "⚠️ Alertes":
-    st.markdown('<div class="main-header"><h1>⚠️ Système d\'Alertes</h1><p>Détection automatique des risques</p></div>', unsafe_allow_html=True)
+    st.markdown('<div class="main-header"><h1>⚠️ Système d\'Alerte</h1><p>Détection automatique des risques RH</p></div>', unsafe_allow_html=True)
     
-    alertes = []
     if turnover > 15:
-        alertes.append(("🔴 CRITIQUE", f"Turnover élevé: {turnover:.1f}% (Seuil > 15%)", "Plan de rétention urgent"))
-    if fuite_cadres > 10:
-        alertes.append(("🔴 CRITIQUE", f"Fuite des cadres: {fuite_cadres:.1f}% (Seuil > 10%)", "Entretiens de départ"))
-    elif fuite_cadres > 5:
-        alertes.append(("🟡 ATTENTION", f"Fuite des cadres: {fuite_cadres:.1f}% (Seuil > 5%)", "Surveiller les départs"))
-    if qualite < 80:
-        alertes.append(("🟡 ATTENTION", f"Qualité recrutements: {qualite:.1f}% (Seuil < 80%)", "Améliorer processus d'intégration"))
-    if taux_depart_1ere > 20:
-        alertes.append(("🔴 CRITIQUE", f"Départs 1ère année: {taux_depart_1ere:.1f}% (Seuil > 20%)", "Revoir programme d'intégration"))
-    if questionnaires['Taux_Reponse'].mean() < 50:
-        alertes.append(("🟡 ATTENTION", f"Taux réponse questionnaires: {questionnaires['Taux_Reponse'].mean():.1f}%", "Relancer les enquêtes"))
-    if entretiens['Taux_Realisation'].mean() < 80:
-        alertes.append(("🟡 ATTENTION", f"Entretiens annuels: {entretiens['Taux_Realisation'].mean():.1f}%", "Planifier les entretiens manquants"))
-    if len(contrats_alertes) > 0:
-        alertes.append(("🟡 ATTENTION", f"{len(contrats_alertes)} contrat(s) expire(nt) dans 30 jours", "Contacter les responsables"))
-    
-    if alertes:
-        st.subheader(f"🚨 {len(alertes)} alerte(s) détectée(s)")
-        for niveau, message, action in alertes:
-            if "🔴" in niveau:
-                st.markdown(f'<div class="alert-critical">{niveau}<br><strong>{message}</strong><br>📋 Action: {action}</div>', unsafe_allow_html=True)
-            else:
-                st.markdown(f'<div class="alert-warning">{niveau}<br><strong>{message}</strong><br>📋 Action: {action}</div>', unsafe_allow_html=True)
+        st.error(f"🔴 CRITIQUE - Turnover élevé: {turnover:.1f}% (Seuil > 15%)")
     else:
-        st.markdown('<div class="success-card">✅ Aucune alerte critique. Tous les indicateurs sont sous contrôle.</div>', unsafe_allow_html=True)
+        st.success(f"✅ Turnover sous contrôle: {turnover:.1f}%")
+    
+    if fuite_cadres > 10:
+        st.error(f"🔴 CRITIQUE - Fuite des cadres: {fuite_cadres:.1f}% (Seuil > 10%)")
+    elif fuite_cadres > 5:
+        st.warning(f"🟡 ATTENTION - Fuite des cadres: {fuite_cadres:.1f}% (Seuil > 5%)")
+    else:
+        st.success(f"✅ Fuite des cadres sous contrôle: {fuite_cadres:.1f}%")
+    
+    if qualite < 80:
+        st.warning(f"🟡 ATTENTION - Qualité recrutements: {qualite:.1f}% (Seuil < 80%)")
+    else:
+        st.success(f"✅ Bonne qualité recrutements: {qualite:.1f}%")
+    
+    if taux_depart_1ere > 20:
+        st.error(f"🔴 CRITIQUE - Départs 1ère année: {taux_depart_1ere:.1f}% (Seuil > 20%)")
+    elif taux_depart_1ere > 15:
+        st.warning(f"🟡 ATTENTION - Départs 1ère année: {taux_depart_1ere:.1f}% (Seuil > 15%)")
+    
+    if len(contrats_alertes) > 0:
+        st.warning(f"🟡 ATTENTION - {len(contrats_alertes)} contrat(s) expire(nt) dans 30 jours")
