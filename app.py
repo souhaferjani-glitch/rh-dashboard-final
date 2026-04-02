@@ -126,7 +126,6 @@ st.markdown("""
         background: linear-gradient(90deg, transparent, #e2e8f0, transparent);
     }
     
-    /* Style pour la sidebar avec logo */
     .sidebar-logo {
         text-align: center;
         padding: 1rem 0;
@@ -139,7 +138,6 @@ st.markdown("""
         margin-bottom: 0.5rem;
     }
     
-    /* Style pour la page configuration */
     .config-section {
         background: white;
         border-radius: 1.5rem;
@@ -157,41 +155,6 @@ st.markdown("""
     }
 </style>
 """, unsafe_allow_html=True)
-
-# ==================== SIDEBAR AVEC LOGO ====================
-with st.sidebar:
-    if LOGO_BASE64:
-        st.markdown(f"""
-        <div class="sidebar-logo">
-            <img src="data:image/png;base64,{LOGO_BASE64}" alt="Logo">
-            <h3 style="margin-top: 0.5rem; color: #0f172a;">RH Vision</h3>
-            <p style="color: #64748b; font-size: 0.7rem;">La Pratique Electronique</p>
-        </div>
-        """, unsafe_allow_html=True)
-    else:
-        st.markdown("""
-        <div class="sidebar-logo">
-            <div style="background: linear-gradient(135deg, #0ea5e9, #6366f1); width: 70px; height: 70px; border-radius: 1rem; margin: 0 auto; display: flex; align-items: center; justify-content: center;">
-                <span style="font-size: 2rem;">✨</span>
-            </div>
-            <h3 style="margin-top: 0.5rem; color: #0f172a;">RH Vision</h3>
-            <p style="color: #64748b; font-size: 0.7rem;">La Pratique Electronique</p>
-        </div>
-        """, unsafe_allow_html=True)
-    
-    st.markdown("---")
-    
-    # Filtres
-    st.markdown("### 🎯 Filtres")
-    service_filter = st.multiselect("Service", actifs['Service'].unique(), default=actifs['Service'].unique())
-    categorie_filter = st.multiselect("Catégorie", actifs['Categorie'].unique(), default=actifs['Categorie'].unique())
-    
-    st.markdown("---")
-    page = st.radio("Navigation", ["📊 Tableau de Bord", "📈 Mouvements", "⭐ Talents", "⚙️ Administration", "🎯 KPIs", "⚠️ Alertes", "⚙️ Configuration"])
-    
-    st.markdown("---")
-    st.caption("© 2025 - RH Vision")
-    st.caption("Version 2.0")
 
 # ==================== DONNÉES ====================
 @st.cache_data
@@ -307,6 +270,40 @@ for service in actifs['Service'].unique():
 date_limite = datetime.now() + timedelta(days=30)
 contrats_alertes = contrats_expiration[contrats_expiration['Date_Fin'] <= date_limite]
 
+# ==================== SIDEBAR ====================
+with st.sidebar:
+    if LOGO_BASE64:
+        st.markdown(f"""
+        <div class="sidebar-logo">
+            <img src="data:image/png;base64,{LOGO_BASE64}" alt="Logo">
+            <h3 style="margin-top: 0.5rem; color: #0f172a;">RH Vision</h3>
+            <p style="color: #64748b; font-size: 0.7rem;">La Pratique Electronique</p>
+        </div>
+        """, unsafe_allow_html=True)
+    else:
+        st.markdown("""
+        <div class="sidebar-logo">
+            <div style="background: linear-gradient(135deg, #0ea5e9, #6366f1); width: 70px; height: 70px; border-radius: 1rem; margin: 0 auto; display: flex; align-items: center; justify-content: center;">
+                <span style="font-size: 2rem;">✨</span>
+            </div>
+            <h3 style="margin-top: 0.5rem; color: #0f172a;">RH Vision</h3>
+            <p style="color: #64748b; font-size: 0.7rem;">La Pratique Electronique</p>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    st.markdown("---")
+    
+    st.markdown("### 🎯 Filtres")
+    service_filter = st.multiselect("Service", actifs['Service'].unique(), default=actifs['Service'].unique())
+    categorie_filter = st.multiselect("Catégorie", actifs['Categorie'].unique(), default=actifs['Categorie'].unique())
+    
+    st.markdown("---")
+    page = st.radio("Navigation", ["📊 Tableau de Bord", "📈 Mouvements", "⭐ Talents", "⚙️ Administration", "🎯 KPIs", "⚠️ Alertes", "⚙️ Configuration"])
+    
+    st.markdown("---")
+    st.caption("© 2025 - RH Vision")
+    st.caption("Version 2.0")
+
 # ==================== PAGE TABLEAU DE BORD ====================
 if page == "📊 Tableau de Bord":
     st.markdown("""
@@ -342,7 +339,7 @@ if page == "📊 Tableau de Bord":
             </div>
             <div class="kpi-value">{turnover:.1f}%</div>
             <div style="color: #64748b; margin-top: 0.5rem;">Taux de Rotation</div>
-            <div style="font-size: 0.75rem; color: #94a3b8;">Objectif: {'✓ Atteint' if turnover < 15 else '&lt;15%'}</div>
+            <div style="font-size: 0.75rem; color: #94a3b8;">Objectif: {'✓ Atteint' if turnover < 15 else '<15%'}</div>
         </div>
         """, unsafe_allow_html=True)
     
@@ -503,7 +500,7 @@ elif page == "📈 Mouvements":
         st.markdown(f"""
         <div class="modern-card">
             <div class="kpi-value">{taux_depart_1ere:.1f}%</div>
-            <div>Objectif: {'✓ Atteint' if taux_depart_1ere < 20 else '&lt;20%'}</div>
+            <div>Objectif: {'✓ Atteint' if taux_depart_1ere < 20 else '<20%'}</div>
             <progress value="{taux_depart_1ere}" max="100" style="width: 100%; height: 8px; border-radius: 4px;"></progress>
         </div>
         """, unsafe_allow_html=True)
@@ -536,7 +533,7 @@ elif page == "⭐ Talents":
             <div style="font-size: 2rem;">⏱️</div>
             <div class="kpi-value">{delai_promotion:.1f}</div>
             <div>Délai moyen de promotion (ans)</div>
-            <div style="font-size: 0.75rem;">Objectif: {'✓ Atteint' if delai_promotion < 3 else '&lt;3 ans'}</div>
+            <div style="font-size: 0.75rem;">Objectif: {'✓ Atteint' if delai_promotion < 3 else '<3 ans'}</div>
         </div>
         """, unsafe_allow_html=True)
         
@@ -752,7 +749,7 @@ elif page == "⚙️ Configuration":
     
     col1, col2 = st.columns(2)
     with col1:
-        theme = st.selectbox("Thème", ["Clair", "Sombre", "Système"], key="config_theme")
+        st.selectbox("Thème", ["Clair", "Sombre", "Système"], key="config_theme")
         st.color_picker("Couleur principale", "#0ea5e9", key="config_primary_color")
     with col2:
         st.selectbox("Police", ["Inter", "Poppins", "Roboto", "Open Sans"], key="config_font")
@@ -827,7 +824,6 @@ elif page == "⚙️ Configuration":
         if st.button("📤 Importer la configuration", use_container_width=True, key="config_import"):
             st.info("Veuillez sélectionner un fichier de configuration")
     
-    # Bouton sauvegarde
     st.markdown("---")
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
