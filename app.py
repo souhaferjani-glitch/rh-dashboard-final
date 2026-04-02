@@ -9,6 +9,7 @@ import base64
 from PIL import Image
 import io
 import requests
+import os
 
 warnings.filterwarnings('ignore')
 
@@ -19,7 +20,28 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# ==================== STYLE MODERNE ====================
+# ==================== FONCTION POUR CHARGER LE LOGO ====================
+def get_logo_base64():
+    """Charge le logo PNG et le convertit en base64"""
+    # Chemins possibles pour le logo
+    logo_paths = [
+        "logo.png",  # Dans le même dossier
+        "assets/logo.png",  # Dans un dossier assets
+        "images/logo.png",  # Dans un dossier images
+        "static/logo.png",  # Dans un dossier static
+    ]
+    
+    for path in logo_paths:
+        if os.path.exists(path):
+            with open(path, "rb") as img_file:
+                return base64.b64encode(img_file.read()).decode()
+    
+    # Si aucun logo n'est trouvé, retourner None
+    return None
+
+LOGO_BASE64 = get_logo_base64()
+
+# ==================== STYLE MODERNE AVEC LOGO ====================
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
@@ -30,6 +52,13 @@ st.markdown("""
     
     .stApp {
         background: linear-gradient(135deg, #f5f7fa 0%, #ffffff 100%);
+    }
+    
+    /* Conteneur principal centré */
+    .main-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 0 1rem;
     }
     
     .main-header {
@@ -140,6 +169,12 @@ st.markdown("""
         border-right: 1px solid rgba(102, 126, 234, 0.1);
     }
     
+    /* Centrage du contenu principal */
+    .block-container {
+        padding-top: 2rem;
+        padding-bottom: 2rem;
+    }
+    
     .stButton > button {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
@@ -151,6 +186,51 @@ st.markdown("""
     .stButton > button:hover {
         transform: translateY(-2px);
         box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+    
+    /* Style pour le conteneur du logo */
+    .logo-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+    
+    .logo-circle {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+    }
+    
+    .logo-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    
+    /* Style login centré */
+    .login-wrapper {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    
+    .login-card {
+        background: white;
+        padding: 2.5rem;
+        border-radius: 1.5rem;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        text-align: center;
+        width: 100%;
+        max-width: 420px;
+        margin: 0 auto;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -166,18 +246,36 @@ if "username" not in st.session_state:
     st.session_state.username = ""
 
 def show_login():
-    st.markdown("""
-    <div style="display: flex; justify-content: center; align-items: center; min-height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-        <div style="background: white; padding: 2.5rem; border-radius: 1.5rem; box-shadow: 0 20px 40px rgba(0,0,0,0.2); text-align: center; width: 100%; max-width: 420px;">
-            <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 20px; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 1rem;">
+    # HTML pour le login centré
+    logo_html = ""
+    if LOGO_BASE64:
+        logo_html = f'''
+        <div class="logo-container">
+            <div class="logo-circle">
+                <img src="data:image/png;base64,{LOGO_BASE64}" class="logo-image" alt="Logo">
+            </div>
+        </div>
+        '''
+    else:
+        logo_html = '''
+        <div class="logo-container">
+            <div class="logo-circle">
                 <span style="font-size: 2.5rem;">📊</span>
             </div>
+        </div>
+        '''
+    
+    st.markdown(f"""
+    <div class="login-wrapper">
+        <div class="login-card">
+            {logo_html}
             <h2 style="color: #1e293b; margin: 0;">RH Dashboard</h2>
             <p style="color: #64748b; margin-bottom: 1.5rem;">La Pratique Electronique</p>
     """, unsafe_allow_html=True)
     
-    username = st.text_input("👤 Nom d'utilisateur", placeholder="rhmanager", key="login_user")
-    password = st.text_input("🔒 Mot de passe", placeholder="••••••••", type="password", key="login_pass")
+    username = st.text_input("👤 Nom d'utilisateur", placeholder="rhmanager", key="login_user", label_visibility="collapsed")
+    st.markdown("<br>", unsafe_allow_html=True)
+    password = st.text_input("🔒 Mot de passe", placeholder="••••••••", type="password", key="login_pass", label_visibility="collapsed")
     
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
@@ -315,17 +413,29 @@ for service in actifs['Service'].unique():
 date_limite = datetime.now() + timedelta(days=30)
 contrats_alertes = contrats_expiration[contrats_expiration['Date_Fin'] <= date_limite]
 
-# ==================== SIDEBAR ====================
+# ==================== SIDEBAR AVEC LOGO ====================
 with st.sidebar:
-    st.markdown("""
-    <div style="text-align: center; margin-bottom: 20px; padding: 10px;">
-        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); width: 70px; height: 70px; border-radius: 20px; margin: 0 auto; display: flex; align-items: center; justify-content: center;">
-            <span style="font-size: 2rem;">📊</span>
+    # Logo dans la sidebar
+    if LOGO_BASE64:
+        st.markdown(f"""
+        <div style="text-align: center; margin-bottom: 20px; padding: 10px;">
+            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); width: 70px; height: 70px; border-radius: 20px; margin: 0 auto; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                <img src="data:image/png;base64,{LOGO_BASE64}" style="width: 100%; height: 100%; object-fit: cover;">
+            </div>
+            <h3 style="color: #667eea; margin: 10px 0 0 0;">RH Dashboard</h3>
+            <p style="color: #6c757d; font-size: 0.7rem;">La Pratique Electronique</p>
         </div>
-        <h3 style="color: #667eea; margin: 10px 0 0 0;">RH Dashboard</h3>
-        <p style="color: #6c757d; font-size: 0.7rem;">La Pratique Electronique</p>
-    </div>
-    """, unsafe_allow_html=True)
+        """, unsafe_allow_html=True)
+    else:
+        st.markdown("""
+        <div style="text-align: center; margin-bottom: 20px; padding: 10px;">
+            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); width: 70px; height: 70px; border-radius: 20px; margin: 0 auto; display: flex; align-items: center; justify-content: center;">
+                <span style="font-size: 2rem;">📊</span>
+            </div>
+            <h3 style="color: #667eea; margin: 10px 0 0 0;">RH Dashboard</h3>
+            <p style="color: #6c757d; font-size: 0.7rem;">La Pratique Electronique</p>
+        </div>
+        """, unsafe_allow_html=True)
     
     st.markdown("---")
     
@@ -367,6 +477,10 @@ with st.sidebar:
     st.markdown("---")
     st.caption("© 2025 - La Pratique Electronique")
     st.caption("Souha Ferjani | Projet PFE")
+
+# ==================== CONTENU PRINCIPAL CENTRÉ ====================
+# Wrap content in centered container
+st.markdown('<div class="main-container">', unsafe_allow_html=True)
 
 # ==================== PAGE ACCUEIL ====================
 if page == "🏠 Accueil":
@@ -598,3 +712,6 @@ elif page == "⚠️ Alertes":
     
     if len(contrats_alertes) > 0:
         st.warning(f"🟡 ATTENTION - {len(contrats_alertes)} contrat(s) expire(nt) dans 30 jours")
+
+# Close centered container
+st.markdown('</div>', unsafe_allow_html=True)
