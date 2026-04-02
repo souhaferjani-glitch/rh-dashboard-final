@@ -17,7 +17,7 @@ st.set_page_config(
 # ==================== LOGIN ====================
 # Identifiants pour le manager RH
 USERS = {
-    "Mrh": "mrh2025"
+    "rhadmin": "admin2025"
 }
 
 if "logged_in" not in st.session_state:
@@ -167,11 +167,10 @@ def show_login():
             </div>
             <div class="login-body">
                 <div class="login-input">
-                    <label>👤 Nom d'utilisateur</label>
                 </div>
     """, unsafe_allow_html=True)
-    
-    username = st.text_input("", placeholder="rhmanager / admin / drh", key="login_username", label_visibility="collapsed")
+    st.markdown('<div class="form-group"><label class="form-label">Username</label></div>', unsafe_allow_html=True)
+    username = st.text_input("", key="login_username", label_visibility="collapsed")
     
     st.markdown("""
                 <div class="login-input">
