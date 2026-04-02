@@ -9,7 +9,7 @@ warnings.filterwarnings('ignore')
 
 st.set_page_config(
     page_title="RH Dashboard - La Pratique Electronique",
-    page_icon="📊",
+    page_icon="<img src="https://raw.githubusercontent.com/souhaferjani-glitch/rh-dashboard-final/main/logo.png" alt="Logo">,
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -488,9 +488,6 @@ with st.sidebar:
     """, unsafe_allow_html=True)
     
     st.markdown(f"""
-    <div class="welcome-text">
-        👋 Bonjour, <strong>{st.session_state.username}</strong>
-    </div>
     """, unsafe_allow_html=True)
     
     st.markdown("---")
