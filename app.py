@@ -19,7 +19,7 @@ st.set_page_config(
 
 # ==================== FONCTION POUR CHARGER LE LOGO EN BASE64 ====================
 def get_logo_base64():
-    logo_paths = ["logo.png", "logo.png", "assets/logo.png", "images/logo.png"]
+    logo_paths = ["logo.png", "logo.PNG", "assets/logo.png", "images/logo.png"]
     for path in logo_paths:
         if os.path.exists(path):
             with open(path, "rb") as img_file:
@@ -147,6 +147,25 @@ def get_theme_css():
                 transform: translateY(-2px);
                 box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
             }
+            
+            /* Style pour le bouton thème dans le menu */
+            .theme-toggle {
+                position: fixed;
+                top: 10px;
+                right: 60px;
+                z-index: 999;
+                background: rgba(102, 126, 234, 0.9);
+                border-radius: 30px;
+                padding: 5px 10px;
+                backdrop-filter: blur(5px);
+            }
+            .theme-toggle button {
+                background: transparent;
+                border: none;
+                font-size: 1.2rem;
+                cursor: pointer;
+                margin: 0 5px;
+            }
         </style>
         """
     else:
@@ -272,8 +291,99 @@ def get_theme_css():
                 border: 1px solid rgba(0, 255, 255, 0.3);
                 color: white;
             }
+            
+            .theme-toggle {
+                position: fixed;
+                top: 10px;
+                right: 60px;
+                z-index: 999;
+                background: rgba(0, 255, 255, 0.2);
+                border-radius: 30px;
+                padding: 5px 10px;
+                backdrop-filter: blur(10px);
+                border: 1px solid rgba(0, 255, 255, 0.5);
+            }
+            .theme-toggle button {
+                background: transparent;
+                border: none;
+                font-size: 1.2rem;
+                cursor: pointer;
+                margin: 0 5px;
+            }
         </style>
         """
+
+# ==================== BOUTON DE THÈME DANS LES 3 POINTS ====================
+def theme_switcher():
+    # CSS pour positionner le bouton dans le menu des 3 points
+    st.markdown("""
+    <style>
+        /* Cibler le menu des 3 points et y ajouter le bouton thème */
+        [data-testid="collapsedControl"] {
+            position: relative;
+        }
+        
+        /* Conteneur du bouton thème */
+        .theme-switch-container {
+            position: fixed;
+            top: 12px;
+            right: 120px;
+            z-index: 999999;
+            display: flex;
+            gap: 8px;
+            background: rgba(0,0,0,0.05);
+            backdrop-filter: blur(10px);
+            padding: 5px 12px;
+            border-radius: 40px;
+            border: 1px solid rgba(102, 126, 234, 0.3);
+        }
+        
+        .theme-btn {
+            background: transparent;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 5px 10px;
+            border-radius: 30px;
+            transition: all 0.2s;
+        }
+        
+        .theme-btn:hover {
+            transform: scale(1.1);
+        }
+        
+        .theme-btn-active {
+            background: rgba(102, 126, 234, 0.3);
+            box-shadow: 0 0 10px rgba(102, 126, 234, 0.5);
+        }
+        
+        @media (max-width: 768px) {
+            .theme-switch-container {
+                right: 80px;
+                top: 8px;
+                padding: 3px 8px;
+            }
+            .theme-btn {
+                font-size: 1rem;
+                padding: 3px 8px;
+            }
+        }
+    </style>
+    
+    <div class="theme-switch-container">
+        <button class="theme-btn" onclick="document.location.href='?theme=clair'">☀️</button>
+        <button class="theme-btn" onclick="document.location.href='?theme=sombre'">🌙</button>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Gestion via query params (alternative)
+    import urllib.parse
+    query_params = st.query_params
+    if "theme" in query_params:
+        if query_params["theme"] == "sombre":
+            st.session_state.theme = "sombre"
+        elif query_params["theme"] == "clair":
+            st.session_state.theme = "clair"
 
 # ==================== LOGIN ====================
 USERS = {"Rhadmin": "admin123"}
@@ -284,7 +394,6 @@ if "username" not in st.session_state:
     st.session_state.username = ""
 
 def show_login():
-    # Logo HTML
     if LOGO_BASE64:
         logo_html = f'<img src="data:image/png;base64,{LOGO_BASE64}" class="logo-large">'
     else:
@@ -432,8 +541,9 @@ if not st.session_state.logged_in:
     show_login()
     st.stop()
 
-# ==================== APPLIQUER LE THÈME ====================
+# ==================== APPLIQUER LE THÈME ET LE SWITCHER ====================
 st.markdown(get_theme_css(), unsafe_allow_html=True)
+theme_switcher()
 
 # ==================== DONNÉES ====================
 @st.cache_data
@@ -551,7 +661,6 @@ contrats_alertes = contrats_expiration[contrats_expiration['Date_Fin'] <= date_l
 
 # ==================== SIDEBAR ====================
 with st.sidebar:
-    # Logo dans sidebar
     if LOGO_BASE64:
         st.markdown(f"""
         <div style="text-align: center; margin-bottom: 20px;">
@@ -568,19 +677,6 @@ with st.sidebar:
             <h3 style="color: #667eea; margin: 0;">La Pratique Electronique</h3>
         </div>
         """, unsafe_allow_html=True)
-    
-    st.markdown("---")
-    
-    # Bouton changement thème
-    theme_col1, theme_col2 = st.columns(2)
-    with theme_col1:
-        if st.button("☀️ Clair", use_container_width=True):
-            st.session_state.theme = "clair"
-            st.rerun()
-    with theme_col2:
-        if st.button("🌙 Sombre", use_container_width=True):
-            st.session_state.theme = "sombre"
-            st.rerun()
     
     st.markdown("---")
     st.markdown(f"**👤 {st.session_state.username}**")
