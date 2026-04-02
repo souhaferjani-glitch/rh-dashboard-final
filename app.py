@@ -14,6 +14,200 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+# ==================== LOGIN ====================
+# Identifiants pour le manager RH
+USERS = {
+    "rhmanager": "rh2025",
+    "admin": "admin123",
+    "drh": "drh2025"
+}
+
+if "logged_in" not in st.session_state:
+    st.session_state.logged_in = False
+if "username" not in st.session_state:
+    st.session_state.username = ""
+
+def show_login():
+    st.markdown("""
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        
+        * {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        .stApp {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .login-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .login-card {
+            max-width: 450px;
+            width: 100%;
+            background: white;
+            border-radius: 32px;
+            overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.3);
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .login-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 32px;
+            text-align: center;
+        }
+        
+        .login-logo {
+            width: 80px;
+            height: 80px;
+            border-radius: 20px;
+            margin-bottom: 16px;
+            border: 3px solid rgba(255,255,255,0.3);
+        }
+        
+        .login-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 8px;
+        }
+        
+        .login-subtitle {
+            font-size: 14px;
+            color: rgba(255,255,255,0.8);
+        }
+        
+        .login-body {
+            padding: 40px;
+        }
+        
+        .login-input {
+            margin-bottom: 20px;
+        }
+        
+        .login-input label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #334155;
+            margin-bottom: 8px;
+        }
+        
+        .login-input input {
+            width: 100%;
+            padding: 12px 16px;
+            font-size: 14px;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 12px;
+            background: #fafbfc;
+            transition: all 0.2s;
+        }
+        
+        .login-input input:focus {
+            border-color: #667eea;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(102,126,234,0.1);
+        }
+        
+        .login-button {
+            width: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            border-radius: 40px;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 20px;
+        }
+        
+        .login-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(102,126,234,0.4);
+        }
+        
+        .login-footer {
+            text-align: center;
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1px solid #edf2f7;
+            font-size: 11px;
+            color: #94a3b8;
+        }
+        
+        #MainMenu {visibility: hidden;}
+        footer {visibility: hidden;}
+        header {visibility: hidden;}
+        .stDeployButton {display: none;}
+    </style>
+    
+    <div class="login-container">
+        <div class="login-card">
+            <div class="login-header">
+                <img src="https://raw.githubusercontent.com/souhaferjani-glitch/RH-Dashboard/main/logo.PNG" 
+                     class="login-logo"
+                     onerror="this.style.display='none'; this.parentElement.innerHTML='<div style=\'width:80px;height:80px;background:rgba(255,255,255,0.2);border-radius:20px;margin:0 auto 16px;display:flex;align-items:center;justify-content:center\'><span style=\'font-size:40px;color:white\'>📊</span></div>'">
+                <div class="login-title">RH Dashboard</div>
+                <div class="login-subtitle">La Pratique Electronique</div>
+            </div>
+            <div class="login-body">
+                <div class="login-input">
+                    <label>👤 Nom d'utilisateur</label>
+                </div>
+    """, unsafe_allow_html=True)
+    
+    username = st.text_input("", placeholder="rhmanager / admin / drh", key="login_username", label_visibility="collapsed")
+    
+    st.markdown("""
+                <div class="login-input">
+                    <label>🔒 Mot de passe</label>
+                </div>
+    """, unsafe_allow_html=True)
+    password = st.text_input("", placeholder="••••••••", type="password", key="login_password", label_visibility="collapsed")
+    
+    col1, col2, col3 = st.columns([1,2,1])
+    with col2:
+        if st.button("Se connecter", use_container_width=True):
+            if username in USERS and USERS[username] == password:
+                st.session_state.logged_in = True
+                st.session_state.username = username
+                st.rerun()
+            else:
+                st.error("❌ Nom d'utilisateur ou mot de passe incorrect")
+    
+    st.markdown("""
+                <div class="login-footer">
+                    Accès réservé au manager RH<br>
+                    Contactez l'administrateur pour obtenir vos identifiants
+                </div>
+            </div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    return False
+
+if not st.session_state.logged_in:
+    show_login()
+    st.stop()
+
 # ==================== STYLE MODERNE ====================
 st.markdown("""
 <style>
@@ -27,7 +221,6 @@ st.markdown("""
         background: linear-gradient(135deg, #f5f7fa 0%, #ffffff 100%);
     }
     
-    /* Header principal */
     .main-header {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         padding: 2rem;
@@ -44,7 +237,6 @@ st.markdown("""
         to { opacity: 1; transform: translateY(0); }
     }
     
-    /* Cartes modernes */
     .metric-card {
         background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
         padding: 1.5rem;
@@ -76,7 +268,6 @@ st.markdown("""
         font-weight: 500;
     }
     
-    /* Alertes */
     .alert-critical {
         background: linear-gradient(135deg, #ff6b6b 0%, #ee5a5a 100%);
         border-left: 4px solid #dc3545;
@@ -133,13 +324,11 @@ st.markdown("""
         display: inline-block;
     }
     
-    /* Sidebar moderne */
     [data-testid="stSidebar"] {
         background: linear-gradient(180deg, #ffffff 0%, #f8f9fa 100%);
         border-right: 1px solid rgba(102, 126, 234, 0.1);
     }
     
-    /* Boutons */
     .stButton > button {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
@@ -151,6 +340,29 @@ st.markdown("""
     .stButton > button:hover {
         transform: translateY(-2px);
         box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+    
+    .sidebar-logo {
+        text-align: center;
+        margin-bottom: 20px;
+        padding: 10px;
+    }
+    .sidebar-logo img {
+        width: 80px;
+        height: 80px;
+        border-radius: 20px;
+        object-fit: cover;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
+        border: 2px solid rgba(102, 126, 234, 0.3);
+    }
+    
+    .welcome-text {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 10px 15px;
+        border-radius: 10px;
+        color: white;
+        text-align: center;
+        margin-bottom: 20px;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -268,15 +480,19 @@ for service in actifs['Service'].unique():
 date_limite = datetime.now() + timedelta(days=30)
 contrats_alertes = contrats_expiration[contrats_expiration['Date_Fin'] <= date_limite]
 
-# ==================== SIDEBAR ====================
+# ==================== SIDEBAR AVEC LOGO ====================
 with st.sidebar:
     st.markdown("""
-    <div style="text-align: center; margin-bottom: 20px;">
-        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); width: 70px; height: 70px; border-radius: 20px; margin: 0 auto; display: flex; align-items: center; justify-content: center;">
-            <span style="font-size: 2rem;">📊</span>
-        </div>
+    <div class="sidebar-logo">
+        <img src="https://raw.githubusercontent.com/souhaferjani-glitch/RH-Dashboard/main/logo.PNG" alt="Logo">
         <h3 style="color: #667eea; margin: 10px 0 0 0;">RH Dashboard</h3>
         <p style="color: #6c757d; font-size: 0.7rem;">La Pratique Electronique</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    st.markdown(f"""
+    <div class="welcome-text">
+        👋 Bonjour, <strong>{st.session_state.username}</strong>
     </div>
     """, unsafe_allow_html=True)
     
@@ -294,6 +510,12 @@ with st.sidebar:
         "🎯 KPIs", 
         "⚠️ Alertes"
     ])
+    
+    st.markdown("---")
+    if st.button("🚪 Déconnexion", use_container_width=True):
+        st.session_state.logged_in = False
+        st.session_state.username = ""
+        st.rerun()
     
     st.markdown("---")
     st.caption("© 2025 - La Pratique Electronique")
