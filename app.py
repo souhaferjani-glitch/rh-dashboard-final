@@ -17,9 +17,7 @@ st.set_page_config(
 # ==================== LOGIN ====================
 # Identifiants pour le manager RH
 USERS = {
-    "rhmanager": "rh2025",
-    "admin": "admin123",
-    "drh": "drh2025"
+    "Mrh": "mrh2025"
 }
 
 if "logged_in" not in st.session_state:
@@ -484,7 +482,7 @@ contrats_alertes = contrats_expiration[contrats_expiration['Date_Fin'] <= date_l
 with st.sidebar:
     st.markdown("""
     <div class="sidebar-logo">
-        <img src="https://raw.githubusercontent.com/souhaferjani-glitch/RH-Dashboard/main/logo.PNG" alt="Logo">
+        <img src="https://raw.githubusercontent.com/souhaferjani-glitch/rh-dashboard-final/main/logo.png" alt="Logo">
         <h3 style="color: #667eea; margin: 10px 0 0 0;">RH Dashboard</h3>
         <p style="color: #6c757d; font-size: 0.7rem;">La Pratique Electronique</p>
     </div>
