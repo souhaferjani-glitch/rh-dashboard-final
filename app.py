@@ -8,13 +8,13 @@ import warnings
 warnings.filterwarnings('ignore')
 
 st.set_page_config(
-    page_title="RH Vision - Modern Dashboard",
-    page_icon="✨",
+    page_title="HR Analytics Dashboard",
+    page_icon="📊",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# ==================== STYLE MODERNE ====================
+# ==================== STYLE DATA-DRIVEN ====================
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
@@ -24,97 +24,112 @@ st.markdown("""
     }
     
     .stApp {
-        background: linear-gradient(135deg, #f5f7fa 0%, #ffffff 100%);
-    }
-    
-    .glass-header {
-        background: rgba(255, 255, 255, 0.95);
-        backdrop-filter: blur(10px);
-        padding: 2rem;
-        border-radius: 2rem;
-        margin-bottom: 2rem;
-        box-shadow: 0 8px 32px rgba(31, 38, 135, 0.1);
-        border: 1px solid rgba(255, 255, 255, 0.18);
-    }
-    
-    .modern-card {
-        background: white;
-        border-radius: 1.5rem;
-        padding: 1.5rem;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.05);
-        transition: all 0.3s ease;
-        border: 1px solid #eef2f6;
-    }
-    
-    .modern-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 8px 30px rgba(0,0,0,0.12);
-    }
-    
-    .kpi-value {
-        font-size: 2.8rem;
-        font-weight: 700;
-        background: linear-gradient(135deg, #0ea5e9 0%, #6366f1 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-    }
-    
-    .badge-success {
-        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-        padding: 0.25rem 1rem;
-        border-radius: 2rem;
-        color: white;
-        font-size: 0.8rem;
-        font-weight: 500;
-        display: inline-block;
-    }
-    
-    .badge-warning {
-        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-        padding: 0.25rem 1rem;
-        border-radius: 2rem;
-        color: white;
-        font-size: 0.8rem;
-        font-weight: 500;
-        display: inline-block;
-    }
-    
-    .badge-danger {
-        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-        padding: 0.25rem 1rem;
-        border-radius: 2rem;
-        color: white;
-        font-size: 0.8rem;
-        font-weight: 500;
-        display: inline-block;
-    }
-    
-    .alert-modern {
-        background: linear-gradient(135deg, #fee2e2 0%, #ffedea 100%);
-        border-left: 4px solid #ef4444;
-        padding: 1rem;
-        border-radius: 1rem;
-        margin: 1rem 0;
-    }
-    
-    .stat-container {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 1rem;
         background: #f8fafc;
+    }
+    
+    .dashboard-header {
+        background: linear-gradient(90deg, #1e293b 0%, #0f172a 100%);
+        padding: 2rem;
+        border-radius: 0px;
+        margin-bottom: 2rem;
+        border-bottom: 3px solid #3b82f6;
+    }
+    
+    .metric-card-dark {
+        background: white;
         border-radius: 1rem;
-        margin: 0.5rem 0;
+        padding: 1.25rem;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        border: 1px solid #e2e8f0;
+        transition: all 0.2s;
+    }
+    
+    .metric-card-dark:hover {
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    
+    .metric-value-large {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #0f172a;
+    }
+    
+    .metric-label {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #64748b;
+        font-weight: 600;
+    }
+    
+    .trend-up {
+        color: #10b981;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+    
+    .trend-down {
+        color: #ef4444;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+    
+    .alert-critical {
+        background: #fef2f2;
+        border-left: 4px solid #dc2626;
+        padding: 1rem;
+        margin: 1rem 0;
+        border-radius: 0.5rem;
+        color: #991b1b;
+    }
+    
+    .alert-warning {
+        background: #fffbeb;
+        border-left: 4px solid #f59e0b;
+        padding: 1rem;
+        margin: 1rem 0;
+        border-radius: 0.5rem;
+        color: #92400e;
+    }
+    
+    .success-card {
+        background: #f0fdf4;
+        border-left: 4px solid #22c55e;
+        padding: 1rem;
+        margin: 1rem 0;
+        border-radius: 0.5rem;
+        color: #166534;
+    }
+    
+    .section-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #0f172a;
+        margin: 1.5rem 0 1rem 0;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid #e2e8f0;
+    }
+    
+    .kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin: 1rem 0;
     }
     
     hr {
         margin: 2rem 0;
-        background: linear-gradient(90deg, transparent, #e2e8f0, transparent);
+    }
+    
+    /* Sidebar style */
+    [data-testid="stSidebar"] {
+        background: #ffffff;
+        border-right: 1px solid #e2e8f0;
     }
 </style>
 """, unsafe_allow_html=True)
 
-# ==================== DONNÉES (MÊMES INDICATEURS) ====================
+# ==================== DONNÉES (MÊMES) ====================
 @st.cache_data
 def load_data():
     effectifs = pd.DataFrame({
@@ -199,7 +214,6 @@ qualite = (len(recents[recents['Date_Sortie'].isna()]) / len(recents) * 100) if 
 
 mouvements['Total_Sorties'] = mouvements['Sorties_Dem'] + mouvements['Sorties_Retr'] + mouvements['Sorties_Lice']
 
-# Nouveaux indicateurs
 embauches_an_dernier = effectifs[effectifs['Date_Embauche'] > datetime.now() - timedelta(days=365)]
 departs_1ere_annee = len(embauches_an_dernier[~embauches_an_dernier['Date_Sortie'].isna()])
 taux_depart_1ere = (departs_1ere_annee / len(embauches_an_dernier) * 100) if len(embauches_an_dernier) > 0 else 0
@@ -230,451 +244,347 @@ for service in actifs['Service'].unique():
 date_limite = datetime.now() + timedelta(days=30)
 contrats_alertes = contrats_expiration[contrats_expiration['Date_Fin'] <= date_limite]
 
-# ==================== SIDEBAR MODERNE ====================
+# ==================== SIDEBAR DATA-DRIVEN ====================
 with st.sidebar:
     st.markdown("""
-    <div style="text-align: center; padding: 1rem 0;">
-        <div style="background: linear-gradient(135deg, #0ea5e9, #6366f1); width: 60px; height: 60px; border-radius: 1rem; margin: 0 auto; display: flex; align-items: center; justify-content: center;">
-            <span style="font-size: 2rem;">✨</span>
+    <div style="text-align: center; padding: 1rem;">
+        <div style="background: #3b82f6; width: 50px; height: 50px; border-radius: 12px; margin: 0 auto; display: flex; align-items: center; justify-content: center;">
+            <span style="font-size: 1.5rem; color: white;">HR</span>
         </div>
-        <h3 style="margin-top: 1rem; color: #0f172a;">RH Vision</h3>
-        <p style="color: #64748b; font-size: 0.8rem;">Dashboard Moderne</p>
+        <h4 style="margin: 0.5rem 0 0 0; color: #0f172a;">HR Analytics</h4>
+        <p style="color: #64748b; font-size: 0.7rem;">Data-Driven Dashboard</p>
     </div>
     """, unsafe_allow_html=True)
     
     st.markdown("---")
     
     # Filtres
-    st.markdown("### 🎯 Filtres")
+    st.markdown("### Filters")
     service_filter = st.multiselect("Service", actifs['Service'].unique(), default=actifs['Service'].unique())
-    categorie_filter = st.multiselect("Catégorie", actifs['Categorie'].unique(), default=actifs['Categorie'].unique())
+    categorie_filter = st.multiselect("Category", actifs['Categorie'].unique(), default=actifs['Categorie'].unique())
     
     st.markdown("---")
-    page = st.radio("Navigation", ["📊 Tableau de Bord", "📈 Mouvements", "⭐ Talents", "⚙️ Administration", "🎯 KPIs", "⚠️ Alertes"])
+    page = st.radio("Navigation", ["Dashboard", "Mouvements", "Talents", "Administration", "KPIs", "Alerts"])
     
     st.markdown("---")
-    st.caption("© 2025 - RH Vision")
-    st.caption("Version 2.0")
+    st.caption("© 2025 HR Analytics")
+    st.caption("Version 2.0 | Data-Driven")
 
-# ==================== PAGE TABLEAU DE BORD ====================
-if page == "📊 Tableau de Bord":
+# ==================== PAGE DASHBOARD ====================
+if page == "Dashboard":
     st.markdown("""
-    <div class="glass-header">
-        <h1 style="margin: 0; background: linear-gradient(135deg, #0ea5e9, #6366f1); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
-            Tableau de Bord RH
-        </h1>
-        <p style="color: #64748b; margin-top: 0.5rem;">Suivi en temps réel des indicateurs clés</p>
+    <div class="dashboard-header">
+        <h1 style="margin: 0; color: white;">HR Analytics Dashboard</h1>
+        <p style="color: #94a3b8; margin-top: 0.5rem;">Real-time HR metrics and workforce analytics</p>
     </div>
     """, unsafe_allow_html=True)
     
-    # KPIs en ligne
+    # KPI Row
     col1, col2, col3, col4 = st.columns(4)
     
     with col1:
         st.markdown(f"""
-        <div class="modern-card">
-            <div style="display: flex; align-items: center; justify-content: space-between;">
-                <span style="font-size: 2rem;">👥</span>
-                <span class="badge-success">+{total-15}</span>
-            </div>
-            <div class="kpi-value">{total}</div>
-            <div style="color: #64748b; margin-top: 0.5rem;">Effectif Total</div>
+        <div class="metric-card-dark">
+            <div class="metric-label">TOTAL HEADCOUNT</div>
+            <div class="metric-value-large">{total}</div>
+            <div class="trend-up">▲ +{total-15} this year</div>
         </div>
         """, unsafe_allow_html=True)
     
     with col2:
-        statut = "badge-success" if turnover < 15 else "badge-warning" if turnover < 20 else "badge-danger"
         st.markdown(f"""
-        <div class="modern-card">
-            <div style="display: flex; align-items: center; justify-content: space-between;">
-                <span style="font-size: 2rem;">🔄</span>
-                <span class="{statut}">{'✓' if turnover < 15 else '⚠️'}</span>
-            </div>
-            <div class="kpi-value">{turnover:.1f}%</div>
-            <div style="color: #64748b; margin-top: 0.5rem;">Taux de Rotation</div>
-            <div style="font-size: 0.75rem; color: #94a3b8;">Objectif: {'✓ Atteint' if turnover < 15 else '&lt;15%'}</div>
+        <div class="metric-card-dark">
+            <div class="metric-label">TURNOVER RATE</div>
+            <div class="metric-value-large">{turnover:.1f}%</div>
+            <div class="trend-down">▼ Target: {'✓' if turnover < 15 else '&lt;15%'}</div>
         </div>
         """, unsafe_allow_html=True)
     
     with col3:
         st.markdown(f"""
-        <div class="modern-card">
-            <div style="display: flex; align-items: center; justify-content: space-between;">
-                <span style="font-size: 2rem;">⭐</span>
-                <span class="badge-success">+33%</span>
-            </div>
-            <div class="kpi-value">{len(promotions)}</div>
-            <div style="color: #64748b; margin-top: 0.5rem;">Promotions</div>
+        <div class="metric-card-dark">
+            <div class="metric-label">PROMOTIONS</div>
+            <div class="metric-value-large">{len(promotions)}</div>
+            <div class="trend-up">▲ +33% vs 2023</div>
         </div>
         """, unsafe_allow_html=True)
     
     with col4:
         st.markdown(f"""
-        <div class="modern-card">
-            <div style="display: flex; align-items: center; justify-content: space-between;">
-                <span style="font-size: 2rem;">🚪</span>
-                <span class="badge-success">-2</span>
-            </div>
-            <div class="kpi-value">{departs}</div>
-            <div style="color: #64748b; margin-top: 0.5rem;">Départs</div>
+        <div class="metric-card-dark">
+            <div class="metric-label">DEPARTURES</div>
+            <div class="metric-value-large">{departs}</div>
+            <div class="trend-down">▼ -2 vs 2023</div>
         </div>
         """, unsafe_allow_html=True)
     
-    # Graphiques principaux
+    # Charts Row
     col1, col2 = st.columns(2)
     
     with col1:
         effectifs_filtres = actifs[actifs['Service'].isin(service_filter) & actifs['Categorie'].isin(categorie_filter)]
         effectifs_service = effectifs_filtres.groupby('Service').size().reset_index(name='Effectif')
-        fig = px.pie(effectifs_service, values='Effectif', names='Service', 
-                     title="🏢 Répartition par Service", hole=0.4,
-                     color_discrete_sequence=px.colors.qualitative.Pastel)
-        fig.update_layout(height=400, showlegend=True)
+        fig = px.bar(effectifs_service, x='Service', y='Effectif', title="Workforce by Department",
+                     color='Effectif', color_continuous_scale='Blues')
+        fig.update_layout(height=400)
         st.plotly_chart(fig, use_container_width=True)
     
     with col2:
         fig = go.Figure()
-        fig.add_trace(go.Bar(x=mouvements['Mois'].dt.strftime('%b %Y'), y=mouvements['Entrees'], 
-                             name='Entrées', marker_color='#10b981', text=mouvements['Entrees'], textposition='outside'))
-        fig.add_trace(go.Bar(x=mouvements['Mois'].dt.strftime('%b %Y'), y=mouvements['Total_Sorties'], 
-                             name='Sorties', marker_color='#ef4444', text=mouvements['Total_Sorties'], textposition='outside'))
-        fig.update_layout(title='Entrées vs Sorties mensuelles', barmode='group', height=400)
+        fig.add_trace(go.Scatter(x=mouvements['Mois'].dt.strftime('%b %Y'), y=mouvements['Entrees'].cumsum(),
+                                 name='Cumulative Hires', mode='lines+markers', line=dict(color='#10b981', width=3)))
+        fig.add_trace(go.Scatter(x=mouvements['Mois'].dt.strftime('%b %Y'), y=mouvements['Total_Sorties'].cumsum(),
+                                 name='Cumulative Departures', mode='lines+markers', line=dict(color='#ef4444', width=3)))
+        fig.update_layout(title="Cumulative Hires vs Departures", height=400)
         st.plotly_chart(fig, use_container_width=True)
     
-    # Indicateurs secondaires
-    st.markdown("---")
-    st.markdown("### 📊 Indicateurs Complémentaires")
+    # Demographics
+    st.markdown('<div class="section-title">Workforce Demographics</div>', unsafe_allow_html=True)
     
     col1, col2, col3, col4 = st.columns(4)
     with col1:
         st.markdown(f"""
-        <div class="stat-container">
-            <div>👨‍💼 Cadres</div>
-            <div><strong>{len(cadres)}</strong> <span style="color: #10b981;">({len(cadres)/total*100:.0f}%)</span></div>
+        <div class="metric-card-dark">
+            <div class="metric-label">CADRES</div>
+            <div class="metric-value-large">{len(cadres)}</div>
+            <div>{len(cadres)/total*100:.0f}% of total</div>
         </div>
         """, unsafe_allow_html=True)
     with col2:
         st.markdown(f"""
-        <div class="stat-container">
-            <div>👩 Femmes</div>
-            <div><strong>{len(actifs[actifs['Sexe']=='F'])}</strong> <span style="color: #10b981;">({len(actifs[actifs['Sexe']=='F'])/total*100:.0f}%)</span></div>
+        <div class="metric-card-dark">
+            <div class="metric-label">FEMALES</div>
+            <div class="metric-value-large">{len(actifs[actifs['Sexe']=='F'])}</div>
+            <div>{len(actifs[actifs['Sexe']=='F'])/total*100:.0f}% of total</div>
         </div>
         """, unsafe_allow_html=True)
     with col3:
         st.markdown(f"""
-        <div class="stat-container">
-            <div>👨 Hommes</div>
-            <div><strong>{len(actifs[actifs['Sexe']=='H'])}</strong> <span style="color: #10b981;">({len(actifs[actifs['Sexe']=='H'])/total*100:.0f}%)</span></div>
+        <div class="metric-card-dark">
+            <div class="metric-label">MALES</div>
+            <div class="metric-value-large">{len(actifs[actifs['Sexe']=='H'])}</div>
+            <div>{len(actifs[actifs['Sexe']=='H'])/total*100:.0f}% of total</div>
         </div>
         """, unsafe_allow_html=True)
     with col4:
         st.markdown(f"""
-        <div class="stat-container">
-            <div>📊 Taux réponse</div>
-            <div><strong>{questionnaires['Taux_Reponse'].mean():.0f}%</strong></div>
+        <div class="metric-card-dark">
+            <div class="metric-label">RESPONSE RATE</div>
+            <div class="metric-value-large">{questionnaires['Taux_Reponse'].mean():.0f}%</div>
+            <div>Survey participation</div>
         </div>
         """, unsafe_allow_html=True)
 
 # ==================== PAGE MOUVEMENTS ====================
-elif page == "📈 Mouvements":
+elif page == "Mouvements":
     st.markdown("""
-    <div class="glass-header">
-        <h1 style="margin: 0;">📈 Mouvements du Personnel</h1>
-        <p>Analyse des flux entrants et sortants</p>
+    <div class="dashboard-header">
+        <h1 style="margin: 0; color: white;">Workforce Movements</h1>
+        <p>Hires, departures and turnover analysis</p>
     </div>
     """, unsafe_allow_html=True)
     
+    # Stats
     col1, col2, col3, col4 = st.columns(4)
     with col1:
-        st.markdown(f"""
-        <div class="modern-card">
-            <div style="font-size: 2rem;">📥</div>
-            <div class="kpi-value">{mouvements['Entrees'].sum()}</div>
-            <div>Total Entrées</div>
-        </div>
-        """, unsafe_allow_html=True)
+        st.metric("Total Hires", mouvements['Entrees'].sum())
     with col2:
-        st.markdown(f"""
-        <div class="modern-card">
-            <div style="font-size: 2rem;">📤</div>
-            <div class="kpi-value">{mouvements['Total_Sorties'].sum()}</div>
-            <div>Total Sorties</div>
-        </div>
-        """, unsafe_allow_html=True)
+        st.metric("Total Departures", mouvements['Total_Sorties'].sum())
     with col3:
-        st.markdown(f"""
-        <div class="modern-card">
-            <div style="font-size: 2rem;">⚖️</div>
-            <div class="kpi-value">{mouvements['Entrees'].sum() - mouvements['Total_Sorties'].sum()}</div>
-            <div>Solde Net</div>
-        </div>
-        """, unsafe_allow_html=True)
+        st.metric("Net Change", mouvements['Entrees'].sum() - mouvements['Total_Sorties'].sum())
     with col4:
-        st.markdown(f"""
-        <div class="modern-card">
-            <div style="font-size: 2rem;">🔄</div>
-            <div class="kpi-value">{turnover:.1f}%</div>
-            <div>Turnover</div>
-        </div>
-        """, unsafe_allow_html=True)
+        st.metric("Turnover Rate", f"{turnover:.1f}%")
     
-    # Motifs de sortie
+    # Chart
+    fig = go.Figure()
+    fig.add_trace(go.Bar(x=mouvements['Mois'].dt.strftime('%b %Y'), y=mouvements['Entrees'], name='Hires', marker_color='#10b981'))
+    fig.add_trace(go.Bar(x=mouvements['Mois'].dt.strftime('%b %Y'), y=mouvements['Total_Sorties'], name='Departures', marker_color='#ef4444'))
+    fig.update_layout(title="Monthly Hires vs Departures", barmode='group', height=450)
+    st.plotly_chart(fig, use_container_width=True)
+    
+    # Reasons
     col1, col2, col3 = st.columns(3)
     with col1:
         st.markdown(f"""
-        <div class="modern-card">
-            <div>📝 Démission</div>
-            <div class="kpi-value">{mouvements['Sorties_Dem'].sum()}</div>
+        <div class="metric-card-dark">
+            <div class="metric-label">RESIGNATIONS</div>
+            <div class="metric-value-large">{mouvements['Sorties_Dem'].sum()}</div>
         </div>
         """, unsafe_allow_html=True)
     with col2:
         st.markdown(f"""
-        <div class="modern-card">
-            <div>👴 Retraite</div>
-            <div class="kpi-value">{mouvements['Sorties_Retr'].sum()}</div>
+        <div class="metric-card-dark">
+            <div class="metric-label">RETIREMENTS</div>
+            <div class="metric-value-large">{mouvements['Sorties_Retr'].sum()}</div>
         </div>
         """, unsafe_allow_html=True)
     with col3:
         st.markdown(f"""
-        <div class="modern-card">
-            <div>⚖️ Licenciement</div>
-            <div class="kpi-value">{mouvements['Sorties_Lice'].sum()}</div>
+        <div class="metric-card-dark">
+            <div class="metric-label">TERMINATIONS</div>
+            <div class="metric-value-large">{mouvements['Sorties_Lice'].sum()}</div>
         </div>
         """, unsafe_allow_html=True)
     
-    # Turnover par service
-    st.markdown("### 📊 Turnover par Service")
+    # Turnover by department
+    st.markdown('<div class="section-title">Turnover by Department</div>', unsafe_allow_html=True)
     turnover_service = []
     for service in actifs['Service'].unique():
         effectif_service = len(actifs[actifs['Service'] == service])
         departs_service = len(effectifs[(effectifs['Service'] == service) & (~effectifs['Date_Sortie'].isna())])
         taux = (departs_service / effectif_service * 100) if effectif_service > 0 else 0
-        turnover_service.append({'Service': service, 'Turnover (%)': round(taux, 1)})
+        turnover_service.append({'Department': service, 'Turnover Rate (%)': round(taux, 1)})
     st.dataframe(pd.DataFrame(turnover_service), use_container_width=True)
     
-    # Taux départ 1ère année
-    st.markdown("### 📊 Taux de départ durant la première année")
-    if len(embauches_an_dernier) > 0:
-        st.markdown(f"""
-        <div class="modern-card">
-            <div class="kpi-value">{taux_depart_1ere:.1f}%</div>
-            <div>Objectif: {'✓ Atteint' if taux_depart_1ere < 20 else '&lt;20%'}</div>
-            <progress value="{taux_depart_1ere}" max="100" style="width: 100%; height: 8px; border-radius: 4px;"></progress>
-        </div>
-        """, unsafe_allow_html=True)
-    else:
-        st.info("ℹ️ Pas d'embauches dans la dernière année")
+    # First year departure rate
+    st.markdown('<div class="section-title">First Year Departure Rate</div>', unsafe_allow_html=True)
+    st.markdown(f"""
+    <div class="metric-card-dark">
+        <div class="metric-value-large">{taux_depart_1ere:.1f}%</div>
+        <div>Target: {'✓ Achieved' if taux_depart_1ere < 20 else '&lt;20%'}</div>
+        <progress value="{taux_depart_1ere}" max="100" style="width: 100%; height: 6px;"></progress>
+    </div>
+    """, unsafe_allow_html=True)
 
 # ==================== PAGE TALENTS ====================
-elif page == "⭐ Talents":
+elif page == "Talents":
     st.markdown("""
-    <div class="glass-header">
-        <h1 style="margin: 0;">⭐ Gestion des Talents</h1>
-        <p>Promotions et mobilité interne</p>
+    <div class="dashboard-header">
+        <h1 style="margin: 0; color: white;">Talent Management</h1>
+        <p>Promotions and internal mobility</p>
     </div>
     """, unsafe_allow_html=True)
     
     col1, col2 = st.columns(2)
     with col1:
         st.markdown(f"""
-        <div class="modern-card">
-            <div style="font-size: 2rem;">📋</div>
-            <div class="kpi-value">{len(promotions)}</div>
-            <div>Total Promotions</div>
+        <div class="metric-card-dark">
+            <div class="metric-label">TOTAL PROMOTIONS</div>
+            <div class="metric-value-large">{len(promotions)}</div>
+            <div>2024-2025 period</div>
         </div>
         """, unsafe_allow_html=True)
         st.dataframe(promotions, use_container_width=True)
     
     with col2:
         st.markdown(f"""
-        <div class="modern-card">
-            <div style="font-size: 2rem;">⏱️</div>
-            <div class="kpi-value">{delai_promotion:.1f}</div>
-            <div>Délai moyen de promotion (ans)</div>
-            <div style="font-size: 0.75rem;">Objectif: {'✓ Atteint' if delai_promotion < 3 else '&lt;3 ans'}</div>
+        <div class="metric-card-dark">
+            <div class="metric-label">AVG PROMOTION DELAY</div>
+            <div class="metric-value-large">{delai_promotion:.1f}</div>
+            <div>years</div>
+            <div>Target: {'✓' if delai_promotion < 3 else '&lt;3 years'}</div>
         </div>
         """, unsafe_allow_html=True)
         
         st.markdown(f"""
-        <div class="modern-card">
-            <div style="font-size: 2rem;">🔄</div>
-            <div class="kpi-value">{len(promotions)}</div>
-            <div>Mobilité interne</div>
-            <div style="font-size: 0.75rem;">Période: 2024-2025</div>
+        <div class="metric-card-dark">
+            <div class="metric-label">INTERNAL MOBILITY</div>
+            <div class="metric-value-large">{len(promotions)}</div>
+            <div>position changes</div>
         </div>
         """, unsafe_allow_html=True)
     
     if len(promotions) > 0:
-        promotions_par_annee = promotions.groupby(promotions['Date_Promot'].dt.year).size().reset_index(name='Nombre')
-        promotions_par_annee.columns = ['Année', 'Nombre']
-        fig = px.bar(promotions_par_annee, x='Année', y='Nombre', title="Promotions par année", text='Nombre')
-        fig.update_traces(marker_color='#6366f1', textposition='outside')
+        promotions_par_annee = promotions.groupby(promotions['Date_Promot'].dt.year).size().reset_index(name='Count')
+        promotions_par_annee.columns = ['Year', 'Count']
+        fig = px.bar(promotions_par_annee, x='Year', y='Count', title="Promotions by Year", text='Count')
+        fig.update_traces(marker_color='#3b82f6', textposition='outside')
         st.plotly_chart(fig, use_container_width=True)
 
 # ==================== PAGE ADMINISTRATION ====================
-elif page == "⚙️ Administration":
+elif page == "Administration":
     st.markdown("""
-    <div class="glass-header">
-        <h1 style="margin: 0;">⚙️ Gestion Administrative</h1>
-        <p>Suivi des indicateurs administratifs RH</p>
+    <div class="dashboard-header">
+        <h1 style="margin: 0; color: white;">Administrative Management</h1>
+        <p>Surveys, appraisals, sanctions, and absenteeism</p>
     </div>
     """, unsafe_allow_html=True)
     
-    # Taux de réponse questionnaires
-    st.markdown("### 📊 Taux de réponse aux questionnaires")
-    taux_reponse_moyen = questionnaires['Taux_Reponse'].mean()
+    # Survey response rate
+    st.markdown('<div class="section-title">📊 Survey Response Rate</div>', unsafe_allow_html=True)
     col1, col2, col3 = st.columns(3)
     with col1:
-        st.markdown(f"""
-        <div class="modern-card">
-            <div class="kpi-value">{taux_reponse_moyen:.1f}%</div>
-            <div>Taux moyen</div>
-        </div>
-        """, unsafe_allow_html=True)
+        st.metric("Average Rate", f"{questionnaires['Taux_Reponse'].mean():.1f}%")
     with col2:
-        st.markdown(f"""
-        <div class="modern-card">
-            <div class="kpi-value">{questionnaires['Nb_Diffuses'].sum()}</div>
-            <div>Questionnaires diffusés</div>
-        </div>
-        """, unsafe_allow_html=True)
+        st.metric("Total Surveys", questionnaires['Nb_Diffuses'].sum())
     with col3:
-        st.markdown(f"""
-        <div class="modern-card">
-            <div class="kpi-value">{questionnaires['Nb_Reponses'].sum()}</div>
-            <div>Réponses reçues</div>
-        </div>
-        """, unsafe_allow_html=True)
+        st.metric("Total Responses", questionnaires['Nb_Reponses'].sum())
     
-    fig = px.line(questionnaires, x='Periode', y='Taux_Reponse', title="Évolution du taux de participation", markers=True)
+    fig = px.area(questionnaires, x='Periode', y='Taux_Reponse', title="Response Rate Evolution",
+                  markers=True, line_shape='spline')
     fig.add_hline(y=75, line_dash="dash", line_color="#f59e0b")
     st.plotly_chart(fig, use_container_width=True)
     
-    # Entretiens annuels
-    st.markdown("### 📋 Entretiens annuels")
-    taux_entretien_moyen = entretiens['Taux_Realisation'].mean()
+    # Annual interviews
+    st.markdown('<div class="section-title">📋 Annual Interviews</div>', unsafe_allow_html=True)
     col1, col2, col3 = st.columns(3)
     with col1:
-        st.markdown(f"""
-        <div class="modern-card">
-            <div class="kpi-value">{taux_entretien_moyen:.1f}%</div>
-            <div>Taux de réalisation</div>
-        </div>
-        """, unsafe_allow_html=True)
+        st.metric("Completion Rate", f"{entretiens['Taux_Realisation'].mean():.1f}%")
     with col2:
-        st.markdown(f"""
-        <div class="modern-card">
-            <div class="kpi-value">{entretiens['Nb_Planifies'].sum()}</div>
-            <div>Entretiens planifiés</div>
-        </div>
-        """, unsafe_allow_html=True)
+        st.metric("Planned", entretiens['Nb_Planifies'].sum())
     with col3:
-        st.markdown(f"""
-        <div class="modern-card">
-            <div class="kpi-value">{entretiens['Nb_Realises'].sum()}</div>
-            <div>Entretiens réalisés</div>
-        </div>
-        """, unsafe_allow_html=True)
+        st.metric("Completed", entretiens['Nb_Realises'].sum())
     
     fig = go.Figure()
-    fig.add_trace(go.Bar(x=entretiens['Annee'], y=entretiens['Taux_Realisation'], text=entretiens['Taux_Realisation'], texttemplate='%{text:.1f}%', textposition='outside'))
+    fig.add_trace(go.Bar(x=entretiens['Annee'], y=entretiens['Taux_Realisation'], 
+                         text=entretiens['Taux_Realisation'], texttemplate='%{text:.1f}%'))
     fig.add_hline(y=80, line_dash="dash", line_color="#ef4444")
-    fig.update_layout(title="Taux de réalisation des entretiens annuels", height=400)
+    fig.update_layout(title="Interview Completion Rate", height=400)
     st.plotly_chart(fig, use_container_width=True)
     
-    # Contrats expiration
-    st.markdown("### ⚠️ Contrats arrivant à expiration (30 jours)")
+    # Contracts
+    st.markdown('<div class="section-title">⚠️ Expiring Contracts (30 days)</div>', unsafe_allow_html=True)
     if len(contrats_alertes) > 0:
-        st.markdown(f"""
-        <div class="alert-modern">
-            🚨 {len(contrats_alertes)} contrat(s) expire(nt) dans les 30 jours
-        </div>
-        """, unsafe_allow_html=True)
+        st.markdown(f'<div class="alert-critical">🚨 {len(contrats_alertes)} contract(s) expiring within 30 days</div>', unsafe_allow_html=True)
         st.dataframe(contrats_alertes, use_container_width=True)
     else:
-        st.success("✅ Aucun contrat n'expire dans les 30 jours")
+        st.markdown('<div class="success-card">✅ No contracts expiring in the next 30 days</div>', unsafe_allow_html=True)
     
     # Sanctions
-    st.markdown("### ⚖️ Sanctions disciplinaires")
+    st.markdown('<div class="section-title">⚖️ Disciplinary Sanctions</div>', unsafe_allow_html=True)
     col1, col2 = st.columns(2)
     with col1:
         st.dataframe(sanctions, use_container_width=True)
     with col2:
-        sanctions_par_service = sanctions.groupby('Service').size().reset_index(name='Nb_Sanctions')
-        fig = px.pie(sanctions_par_service, values='Nb_Sanctions', names='Service', title="Sanctions par service", hole=0.4)
+        sanctions_par_service = sanctions.groupby('Service').size().reset_index(name='Count')
+        fig = px.pie(sanctions_par_service, values='Count', names='Service', title="Sanctions by Department")
         st.plotly_chart(fig, use_container_width=True)
     
-    # Absentéisme
-    st.markdown("### 📊 Taux d'absentéisme par service")
-    fig = px.bar(absenteisme, x='Service', y='Taux_Absence', title="Taux d'absentéisme", text='Taux_Absence')
-    fig.add_hline(y=8, line_dash="dash", line_color="#ef4444")
+    # Absenteeism
+    st.markdown('<div class="section-title">📊 Absenteeism Rate by Department</div>', unsafe_allow_html=True)
+    fig = px.bar(absenteisme, x='Service', y='Taux_Absence', title="Absenteeism Rate",
+                 color='Taux_Absence', color_continuous_scale=['#10b981', '#f59e0b', '#ef4444'])
+    fig.add_hline(y=8, line_dash="dash", line_color="#ef4444", annotation_text="Alert Threshold 8%")
     st.plotly_chart(fig, use_container_width=True)
 
 # ==================== PAGE KPIs ====================
-elif page == "🎯 KPIs":
+elif page == "KPIs":
     st.markdown("""
-    <div class="glass-header">
-        <h1 style="margin: 0;">🎯 Indicateurs Stratégiques</h1>
-        <p>Performance RH et score de risque</p>
+    <div class="dashboard-header">
+        <h1 style="margin: 0; color: white;">Strategic KPIs</h1>
+        <p>HR performance metrics and risk scores</p>
     </div>
     """, unsafe_allow_html=True)
     
     col1, col2 = st.columns(2)
     with col1:
-        fig = go.Figure(go.Indicator(mode="gauge+number", value=qualite, title={'text': "Qualité des recrutements"},
-                                       gauge={'axis': {'range': [0, 100]}, 'bar': {'color': "#10b981"},
-                                              'steps': [{'range': [0, 50], 'color': '#fee2e2'}, {'range': [50, 80], 'color': '#fed7aa'}, {'range': [80, 100], 'color': '#d1fae5'}]}))
+        fig = go.Figure(go.Indicator(
+            mode="gauge+number",
+            value=qualite,
+            title={'text': "Recruitment Quality"},
+            gauge={'axis': {'range': [0, 100]},
+                   'bar': {'color': "#10b981"},
+                   'steps': [{'range': [0, 50], 'color': '#fee2e2'},
+                             {'range': [50, 80], 'color': '#fed7aa'},
+                             {'range': [80, 100], 'color': '#d1fae5'}]}))
         fig.update_layout(height=350)
         st.plotly_chart(fig, use_container_width=True)
     
     with col2:
-        fig = go.Figure(go.Indicator(mode="gauge+number", value=fuite_cadres, title={'text': "Fuite des compétences"},
-                                       gauge={'axis': {'range': [0, 30]}, 'bar': {'color': "#ef4444"},
-                                              'steps': [{'range': [0, 5], 'color': '#d1fae5'}, {'range': [5, 10], 'color': '#fed7aa'}, {'range': [10, 30], 'color': '#fee2e2'}]}))
-        fig.update_layout(height=350)
-        st.plotly_chart(fig, use_container_width=True)
-    
-    st.markdown("### 🎯 Score de risque par service")
-    st.dataframe(pd.DataFrame(services_risque), use_container_width=True)
-    
-    fig = px.bar(pd.DataFrame(services_risque), x='Service', y='Score Risque', 
-                 title="Score de risque par service", color='Score Risque',
-                 color_continuous_scale=['#10b981', '#f59e0b', '#ef4444'])
-    st.plotly_chart(fig, use_container_width=True)
-
-# ==================== PAGE ALERTES ====================
-elif page == "⚠️ Alertes":
-    st.markdown("""
-    <div class="glass-header">
-        <h1 style="margin: 0;">⚠️ Système d'Alerte</h1>
-        <p>Détection automatique des risques RH</p>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    alertes = []
-    if turnover > 15:
-        alertes.append(("🔴 CRITIQUE", f"Turnover élevé: {turnover:.1f}% (Seuil > 15%)", "Plan de rétention urgent"))
-    if fuite_cadres > 10:
-        alertes.append(("🔴 CRITIQUE", f"Fuite des cadres: {fuite_cadres:.1f}% (Seuil > 10%)", "Entretiens de départ"))
-    elif fuite_cadres > 5:
-        alertes.append(("🟡 ATTENTION", f"Fuite des cadres: {fuite_cadres:.1f}% (Seuil > 5%)", "Surveiller les départs"))
-    if qualite < 80:
-        alertes.append(("🟡 ATTENTION", f"Qualité recrutements: {qualite:.1f}% (Seuil < 80%)", "Améliorer processus d'intégration"))
-    if taux_depart_1ere > 20:
-        alertes.append(("🔴 CRITIQUE", f"Départs 1ère année: {taux_depart_1ere:.1f}% (Seuil > 20%)", "Revoir programme d'intégration"))
-    if len(contrats_alertes) > 0:
-        alertes.append(("🟡 ATTENTION", f"{len(contrats_alertes)} contrat(s) expire(nt) dans 30 jours", "Contacter les responsables"))
-    
-    if alertes:
-        st.subheader(f"🚨 {len(alertes)} alerte(s) détectée(s)")
-        for niveau, message, action in alertes:
-            if "🔴" in niveau:
-                st.markdown(f'<div class="alert-modern" style="border-left-color: #ef4444;">{niveau}<br><strong>{message}</strong><br>📋 {action}</div>', unsafe_allow_html=True)
-            else:
-                st.markdown(f'<div class="alert-modern" style="border-left-color: #f59e0b;">{niveau}<br><strong>{message}</strong><br>📋 {action}</div>', unsafe_allow_html=True)
-    else:
-        st.markdown("""
-        <div class="modern-card" style="background: #d1fae5; text-align: center;">
-            ✅ Aucune alerte critique. Tous les indicateurs sont sous contrôle.
-        </div>
-        """, unsafe_allow_html=True)
+        fig = go.Figure(go.Indicator(
+            mode="gauge+number",
+            value=fuite_cadres,
+            title={'text': "Talent Attrition"},
+            gauge={'axis': {'range': [0, 30]},
+                   'bar': {'color': "#ef4444"},
+                   'steps': [
