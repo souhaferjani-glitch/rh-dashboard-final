@@ -7,38 +7,35 @@ from datetime import datetime, timedelta
 import warnings
 warnings.filterwarnings('ignore')
 
+# Configuration de la page
 st.set_page_config(
     page_title="RH Dashboard - La Pratique Electronique",
-    page_icon="<img src="https://raw.githubusercontent.com/souhaferjani-glitch/rh-dashboard-final/main/logo.png" alt="Logo">,
+    page_icon="📊",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# ==================== LOGIN ====================
-# Identifiants pour le manager RH
+# ==================== LOGIN SYSTEM ====================
+# Utilisateurs autorisés (Manager RH)
 USERS = {
-    "rhadmin": "admin2025"
+    "rhmanager": "admin123",
 }
 
+# Initialisation de la session
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 if "username" not in st.session_state:
     st.session_state.username = ""
 
+# Fonction de login
 def show_login():
+    # Style du login
     st.markdown("""
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
         
         * {
             font-family: 'Inter', sans-serif;
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        .stApp {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
         
         .login-container {
@@ -46,154 +43,99 @@ def show_login():
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            padding: 20px;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
         }
         
         .login-card {
-            max-width: 450px;
-            width: 100%;
-            background: white;
-            border-radius: 32px;
-            overflow: hidden;
-            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.3);
-            animation: fadeIn 0.5s ease;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        .login-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 32px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 2rem;
+            padding: 2.5rem;
+            width: 400px;
+            box-shadow: 0 25px 45px rgba(0,0,0,0.2);
+            border: 1px solid rgba(255,255,255,0.2);
             text-align: center;
         }
         
         .login-logo {
-            width: 80px;
-            height: 80px;
-            border-radius: 20px;
-            margin-bottom: 16px;
-            border: 3px solid rgba(255,255,255,0.3);
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            margin: 0 auto 1rem auto;
+            border: 3px solid #667eea;
+            object-fit: cover;
         }
         
         .login-title {
-            font-size: 24px;
+            font-size: 1.8rem;
             font-weight: 700;
             color: white;
-            margin-bottom: 8px;
+            margin-bottom: 0.5rem;
         }
         
         .login-subtitle {
-            font-size: 14px;
-            color: rgba(255,255,255,0.8);
+            color: rgba(255,255,255,0.7);
+            font-size: 0.9rem;
+            margin-bottom: 2rem;
         }
         
-        .login-body {
-            padding: 40px;
+        .stTextInput > div > div > input {
+            background: rgba(255,255,255,0.9);
+            border-radius: 0.5rem;
+            border: none;
+            padding: 0.75rem;
         }
         
-        .login-input {
-            margin-bottom: 20px;
-        }
-        
-        .login-input label {
-            display: block;
-            font-size: 13px;
-            font-weight: 600;
-            color: #334155;
-            margin-bottom: 8px;
-        }
-        
-        .login-input input {
-            width: 100%;
-            padding: 12px 16px;
-            font-size: 14px;
-            border: 1.5px solid #e2e8f0;
-            border-radius: 12px;
-            background: #fafbfc;
-            transition: all 0.2s;
-        }
-        
-        .login-input input:focus {
-            border-color: #667eea;
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(102,126,234,0.1);
-        }
-        
-        .login-button {
-            width: 100%;
+        .stButton > button {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
-            padding: 12px;
-            font-size: 14px;
+            width: 100%;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
             font-weight: 600;
-            border-radius: 40px;
-            cursor: pointer;
-            transition: all 0.3s;
-            margin-top: 20px;
+            margin-top: 1rem;
         }
         
-        .login-button:hover {
+        .stButton > button:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 25px -5px rgba(102,126,234,0.4);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
         }
         
         .login-footer {
-            text-align: center;
-            margin-top: 24px;
-            padding-top: 20px;
-            border-top: 1px solid #edf2f7;
-            font-size: 11px;
-            color: #94a3b8;
+            margin-top: 2rem;
+            color: rgba(255,255,255,0.5);
+            font-size: 0.7rem;
         }
-        
-        #MainMenu {visibility: hidden;}
-        footer {visibility: hidden;}
-        header {visibility: hidden;}
-        .stDeployButton {display: none;}
     </style>
     
     <div class="login-container">
         <div class="login-card">
-            <div class="login-header">
-                <img src="https://raw.githubusercontent.com/souhaferjani-glitch/RH-Dashboard/main/logo.PNG" 
-                     class="login-logo"
-                     onerror="this.style.display='none'; this.parentElement.innerHTML='<div style=\'width:80px;height:80px;background:rgba(255,255,255,0.2);border-radius:20px;margin:0 auto 16px;display:flex;align-items:center;justify-content:center\'><span style=\'font-size:40px;color:white\'>📊</span></div>'">
-                <div class="login-title">RH Dashboard</div>
-                <div class="login-subtitle">La Pratique Electronique</div>
-            </div>
-            <div class="login-body">
-                <div class="login-input">
-                </div>
+            <img src="https://raw.githubusercontent.com/souhaferjani-glitch/RH-Dashboard/main/logo.PNG" 
+                 class="login-logo"
+                 onerror="this.onerror=null; this.src='https://via.placeholder.com/100?text=RH'">
+            <div class="login-title">RH Dashboard</div>
+            <div class="login-subtitle">La Pratique Electronique</div>
     """, unsafe_allow_html=True)
-    st.markdown('<div class="form-group"><label class="form-label">Username</label></div>', unsafe_allow_html=True)
-    username = st.text_input("", key="login_username", label_visibility="collapsed")
     
-    st.markdown("""
-                <div class="login-input">
-                    <label>🔒 Mot de passe</label>
-                </div>
-    """, unsafe_allow_html=True)
-    password = st.text_input("", placeholder="••••••••", type="password", key="login_password", label_visibility="collapsed")
+    # Champs de connexion
+    username = st.text_input("", placeholder="Nom d'utilisateur", key="login_user", label_visibility="collapsed")
+    password = st.text_input("", placeholder="Mot de passe", type="password", key="login_pass", label_visibility="collapsed")
     
-    col1, col2, col3 = st.columns([1,2,1])
+    col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
-        if st.button("Se connecter", use_container_width=True):
+        if st.button("🔐 Se connecter", use_container_width=True):
             if username in USERS and USERS[username] == password:
                 st.session_state.logged_in = True
                 st.session_state.username = username
                 st.rerun()
             else:
-                st.error("❌ Nom d'utilisateur ou mot de passe incorrect")
+                st.error("❌ Identifiants incorrects")
     
-    st.markdown("""
-                <div class="login-footer">
-                    Accès réservé au manager RH<br>
-                    Contactez l'administrateur pour obtenir vos identifiants
-                </div>
+    st.markdown(f"""
+            <div class="login-footer">
+                <p>Accès réservé au management RH</p>
+                <p>© 2025 - La Pratique Electronique</p>
             </div>
         </div>
     </div>
@@ -201,11 +143,12 @@ def show_login():
     
     return False
 
+# Afficher le login si non connecté
 if not st.session_state.logged_in:
     show_login()
     st.stop()
 
-# ==================== STYLE MODERNE ====================
+# ==================== STYLE DARK MODE ====================
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
@@ -214,10 +157,12 @@ st.markdown("""
         font-family: 'Inter', sans-serif;
     }
     
+    /* Dark Mode */
     .stApp {
-        background: linear-gradient(135deg, #f5f7fa 0%, #ffffff 100%);
+        background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 100%);
     }
     
+    /* Header */
     .main-header {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         padding: 2rem;
@@ -225,7 +170,7 @@ st.markdown("""
         color: white;
         text-align: center;
         margin-bottom: 2rem;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
         animation: fadeIn 0.5s ease-in;
     }
     
@@ -234,19 +179,20 @@ st.markdown("""
         to { opacity: 1; transform: translateY(0); }
     }
     
+    /* Cartes Dark Mode */
     .metric-card {
-        background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+        background: linear-gradient(135deg, #1e1e2e 0%, #2a2a3a 100%);
         padding: 1.5rem;
         border-radius: 1rem;
         text-align: center;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         transition: all 0.3s ease;
-        border: 1px solid rgba(102, 126, 234, 0.15);
+        border: 1px solid rgba(102, 126, 234, 0.3);
     }
     
     .metric-card:hover {
         transform: translateY(-5px);
-        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.15);
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
     }
     
     .metric-value {
@@ -260,14 +206,15 @@ st.markdown("""
     
     .metric-label {
         font-size: 0.85rem;
-        color: #6c757d;
+        color: #a0a0c0;
         margin-top: 0.5rem;
         font-weight: 500;
     }
     
+    /* Alertes Dark Mode */
     .alert-critical {
-        background: linear-gradient(135deg, #ff6b6b 0%, #ee5a5a 100%);
-        border-left: 4px solid #dc3545;
+        background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+        border-left: 4px solid #ff6b6b;
         padding: 1rem;
         margin: 1rem 0;
         border-radius: 0.5rem;
@@ -277,16 +224,16 @@ st.markdown("""
     }
     
     .alert-warning {
-        background: linear-gradient(135deg, #ffd93d 0%, #ffc107 100%);
+        background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
         padding: 1rem;
         margin: 1rem 0;
         border-radius: 0.5rem;
-        color: #333;
+        color: white;
         font-weight: 500;
     }
     
     .success-card {
-        background: linear-gradient(135deg, #51cf66 0%, #40c057 100%);
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
         padding: 1rem;
         margin: 1rem 0;
         border-radius: 0.5rem;
@@ -301,13 +248,13 @@ st.markdown("""
     }
     
     .trend-up {
-        color: #51cf66;
+        color: #10b981;
         font-weight: bold;
         font-size: 0.8rem;
     }
     
     .trend-down {
-        color: #ff6b6b;
+        color: #f87171;
         font-weight: bold;
         font-size: 0.8rem;
     }
@@ -319,13 +266,20 @@ st.markdown("""
         padding-bottom: 0.5rem;
         border-bottom: 3px solid #667eea;
         display: inline-block;
+        color: white;
     }
     
+    /* Sidebar Dark Mode */
     [data-testid="stSidebar"] {
-        background: linear-gradient(180deg, #ffffff 0%, #f8f9fa 100%);
-        border-right: 1px solid rgba(102, 126, 234, 0.1);
+        background: linear-gradient(180deg, #0f0f1a 0%, #1a1a2e 100%);
+        border-right: 1px solid rgba(102, 126, 234, 0.3);
     }
     
+    [data-testid="stSidebar"] * {
+        color: #e0e0e0 !important;
+    }
+    
+    /* Boutons Dark Mode */
     .stButton > button {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
@@ -339,6 +293,20 @@ st.markdown("""
         box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
     }
     
+    /* Selectbox et Multiselect Dark Mode */
+    .stMultiSelect, .stSelectbox {
+        background: #1e1e2e;
+        border-radius: 0.5rem;
+    }
+    
+    /* Radio buttons */
+    .stRadio > div {
+        background: #1e1e2e;
+        padding: 0.5rem;
+        border-radius: 0.5rem;
+    }
+    
+    /* Sidebar logo */
     .sidebar-logo {
         text-align: center;
         margin-bottom: 20px;
@@ -349,17 +317,24 @@ st.markdown("""
         height: 80px;
         border-radius: 20px;
         object-fit: cover;
-        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
-        border: 2px solid rgba(102, 126, 234, 0.3);
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        border: 2px solid rgba(102, 126, 234, 0.5);
     }
     
-    .welcome-text {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        padding: 10px 15px;
-        border-radius: 10px;
-        color: white;
-        text-align: center;
-        margin-bottom: 20px;
+    /* Metrics */
+    [data-testid="stMetricValue"] {
+        color: #667eea !important;
+        font-size: 1.8rem !important;
+    }
+    
+    [data-testid="stMetricLabel"] {
+        color: #a0a0c0 !important;
+    }
+    
+    /* Dataframes */
+    .stDataFrame {
+        background: #1e1e2e;
+        border-radius: 0.5rem;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -479,23 +454,36 @@ contrats_alertes = contrats_expiration[contrats_expiration['Date_Fin'] <= date_l
 
 # ==================== SIDEBAR AVEC LOGO ====================
 with st.sidebar:
+    # Logo
     st.markdown("""
     <div class="sidebar-logo">
-        <img src="https://raw.githubusercontent.com/souhaferjani-glitch/rh-dashboard-final/main/logo.png" alt="Logo">
+        <img src="https://raw.githubusercontent.com/souhaferjani-glitch/RH-Dashboard/main/logo.PNG" alt="Logo">
         <h3 style="color: #667eea; margin: 10px 0 0 0;">RH Dashboard</h3>
-        <p style="color: #6c757d; font-size: 0.7rem;">La Pratique Electronique</p>
+        <p style="color: #a0a0c0; font-size: 0.7rem;">La Pratique Electronique</p>
     </div>
-    """, unsafe_allow_html=True)
-    
-    st.markdown(f"""
     """, unsafe_allow_html=True)
     
     st.markdown("---")
     
+    # Informations utilisateur connecté
+    st.markdown(f"""
+    <div style="text-align: center; margin-bottom: 15px;">
+        <p style="color: #10b981; font-size: 0.8rem;">✅ Connecté en tant que:</p>
+        <p style="color: white; font-weight: bold;">{st.session_state.username}</p>
+        <p style="color: #667eea; font-size: 0.7rem;">Manager RH</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    st.markdown("---")
+    
+    # Filtres
+    st.markdown("### 🎯 Filtres")
     service_filter = st.multiselect("🏢 Service", actifs['Service'].unique(), default=actifs['Service'].unique())
     categorie_filter = st.multiselect("⭐ Catégorie", actifs['Categorie'].unique(), default=actifs['Categorie'].unique())
     
     st.markdown("---")
+    
+    # Navigation
     page = st.radio("📑 Navigation", [
         "🏠 Accueil", 
         "📈 Mouvements", 
@@ -506,6 +494,8 @@ with st.sidebar:
     ])
     
     st.markdown("---")
+    
+    # Déconnexion
     if st.button("🚪 Déconnexion", use_container_width=True):
         st.session_state.logged_in = False
         st.session_state.username = ""
@@ -513,7 +503,8 @@ with st.sidebar:
     
     st.markdown("---")
     st.caption("© 2025 - La Pratique Electronique")
-    st.caption("Souha Ferjani | Projet PFE")
+    st.caption(f"Souha Ferjani | Projet PFE")
+    st.caption(f"Session: {datetime.now().strftime('%d/%m/%Y %H:%M')}")
 
 # ==================== PAGE ACCUEIL ====================
 if page == "🏠 Accueil":
@@ -567,7 +558,7 @@ if page == "🏠 Accueil":
                      hole=0.4, 
                      color_discrete_sequence=px.colors.qualitative.Set3)
         fig.update_traces(textposition='inside', textinfo='percent+label')
-        fig.update_layout(height=450)
+        fig.update_layout(height=450, paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
         st.plotly_chart(fig, use_container_width=True)
     
     with col2:
@@ -578,7 +569,9 @@ if page == "🏠 Accueil":
         fig.add_trace(go.Bar(x=mouvements['Mois'].dt.strftime('%b %Y'), y=mouvements['Total_Sorties'], 
                              name='Sorties', marker_color='#ff6b6b',
                              text=mouvements['Total_Sorties'], textposition='outside'))
-        fig.update_layout(title='📊 Entrées vs Sorties mensuelles', barmode='group', height=450)
+        fig.update_layout(title='📊 Entrées vs Sorties mensuelles', barmode='group', height=450,
+                          paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
+                          font=dict(color='white'))
         st.plotly_chart(fig, use_container_width=True)
     
     st.markdown('<div class="section-title">📊 Démographie</div>', unsafe_allow_html=True)
@@ -611,7 +604,9 @@ elif page == "📈 Mouvements":
                          name='Entrées', marker_color='#51cf66', text=mouvements['Entrees'], textposition='outside'))
     fig.add_trace(go.Bar(x=mouvements['Mois'].dt.strftime('%b %Y'), y=mouvements['Total_Sorties'], 
                          name='Sorties', marker_color='#ff6b6b', text=mouvements['Total_Sorties'], textposition='outside'))
-    fig.update_layout(title='Entrées vs Sorties mensuelles', barmode='group', height=450)
+    fig.update_layout(title='Entrées vs Sorties mensuelles', barmode='group', height=450,
+                      paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
+                      font=dict(color='white'))
     st.plotly_chart(fig, use_container_width=True)
     
     st.subheader("📊 Motifs de sortie")
@@ -649,6 +644,8 @@ elif page == "⭐ Talents":
         promotions_par_annee.columns = ['Année', 'Nombre']
         fig = px.bar(promotions_par_annee, x='Année', y='Nombre', title="Promotions par année", text='Nombre')
         fig.update_traces(marker_color='#667eea', textposition='outside')
+        fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
+                          font=dict(color='white'))
         st.plotly_chart(fig, use_container_width=True)
 
 # ==================== PAGE ADMINISTRATION ====================
@@ -667,6 +664,8 @@ elif page == "⚙️ Administration":
     
     fig = px.line(questionnaires, x='Periode', y='Taux_Reponse', title="Évolution du taux de participation", markers=True)
     fig.add_hline(y=75, line_dash="dash", line_color="#f59e0b")
+    fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
+                      font=dict(color='white'))
     st.plotly_chart(fig, use_container_width=True)
     
     st.subheader("📋 Entretiens annuels")
@@ -681,7 +680,9 @@ elif page == "⚙️ Administration":
     fig = go.Figure()
     fig.add_trace(go.Bar(x=entretiens['Annee'], y=entretiens['Taux_Realisation'], text=entretiens['Taux_Realisation'], texttemplate='%{text:.1f}%'))
     fig.add_hline(y=80, line_dash="dash", line_color="#ef4444")
-    fig.update_layout(title="Taux de réalisation des entretiens annuels", height=400)
+    fig.update_layout(title="Taux de réalisation des entretiens annuels", height=400,
+                      paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
+                      font=dict(color='white'))
     st.plotly_chart(fig, use_container_width=True)
     
     st.subheader("⚠️ Contrats arrivant à expiration (30 jours)")
@@ -698,11 +699,15 @@ elif page == "⚙️ Administration":
     with col2:
         sanctions_par_service = sanctions.groupby('Service').size().reset_index(name='Nb_Sanctions')
         fig = px.pie(sanctions_par_service, values='Nb_Sanctions', names='Service', title="Sanctions par service", hole=0.4)
+        fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
+                          font=dict(color='white'))
         st.plotly_chart(fig, use_container_width=True)
     
     st.subheader("📊 Taux d'absentéisme par service")
     fig = px.bar(absenteisme, x='Service', y='Taux_Absence', title="Taux d'absentéisme", text='Taux_Absence')
     fig.add_hline(y=8, line_dash="dash", line_color="#ef4444", annotation_text="Seuil d'alerte 8%")
+    fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
+                      font=dict(color='white'))
     st.plotly_chart(fig, use_container_width=True)
 
 # ==================== PAGE KPIs ====================
@@ -719,7 +724,7 @@ elif page == "🎯 KPIs":
                    'steps': [{'range': [0, 50], 'color': '#ff6b6b'},
                              {'range': [50, 80], 'color': '#ffd93d'},
                              {'range': [80, 100], 'color': '#51cf66'}]}))
-        fig.update_layout(height=400)
+        fig.update_layout(height=400, paper_bgcolor='rgba(0,0,0,0)', font=dict(color='white'))
         st.plotly_chart(fig, use_container_width=True)
     
     with col2:
@@ -731,7 +736,7 @@ elif page == "🎯 KPIs":
                    'steps': [{'range': [0, 5], 'color': '#51cf66'},
                              {'range': [5, 10], 'color': '#ffd93d'},
                              {'range': [10, 30], 'color': '#ff6b6b'}]}))
-        fig.update_layout(height=400)
+        fig.update_layout(height=400, paper_bgcolor='rgba(0,0,0,0)', font=dict(color='white'))
         st.plotly_chart(fig, use_container_width=True)
     
     st.subheader("🎯 Score de risque par service")
@@ -740,6 +745,8 @@ elif page == "🎯 KPIs":
     fig = px.bar(pd.DataFrame(services_risque), x='Service', y='Score Risque', 
                  title="Score de risque par service", color='Score Risque',
                  color_continuous_scale=['#51cf66', '#ffd93d', '#ff6b6b'])
+    fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
+                      font=dict(color='white'))
     st.plotly_chart(fig, use_container_width=True)
 
 # ==================== PAGE ALERTES ====================
