@@ -276,7 +276,6 @@ with st.sidebar:
         st.markdown(f"""
         <div class="sidebar-logo">
             <img src="data:image/png;base64,{LOGO_BASE64}" alt="Logo">
-            <h3 style="margin-top: 0.5rem; color: #0f172a;">RH Vision</h3>
             <p style="color: #64748b; font-size: 0.7rem;">La Pratique Electronique</p>
         </div>
         """, unsafe_allow_html=True)
