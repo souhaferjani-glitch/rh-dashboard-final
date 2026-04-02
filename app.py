@@ -27,6 +27,7 @@ st.markdown("""
         background: linear-gradient(135deg, #f5f7fa 0%, #ffffff 100%);
     }
     
+    /* Header principal */
     .main-header {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         padding: 2rem;
@@ -43,6 +44,7 @@ st.markdown("""
         to { opacity: 1; transform: translateY(0); }
     }
     
+    /* Cartes modernes */
     .metric-card {
         background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
         padding: 1.5rem;
@@ -74,6 +76,7 @@ st.markdown("""
         font-weight: 500;
     }
     
+    /* Alertes */
     .alert-critical {
         background: linear-gradient(135deg, #ff6b6b 0%, #ee5a5a 100%);
         border-left: 4px solid #dc3545;
@@ -148,7 +151,7 @@ st.markdown("""
         box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
     }
     
-    /* Style pour le logo dans sidebar */
+    /* Style pour le logo */
     .sidebar-logo {
         text-align: center;
         margin-bottom: 20px;
@@ -162,8 +165,103 @@ st.markdown("""
         box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
         border: 2px solid rgba(102, 126, 234, 0.3);
     }
+    
+    /* Style pour la page login */
+    .login-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    .login-card {
+        background: white;
+        padding: 2rem;
+        border-radius: 1rem;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        text-align: center;
+        width: 100%;
+        max-width: 400px;
+    }
+    .login-logo {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        margin-bottom: 1rem;
+        border: 3px solid #667eea;
+    }
+    .login-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #1e293b;
+        margin-bottom: 0.5rem;
+    }
+    .login-subtitle {
+        color: #64748b;
+        margin-bottom: 1.5rem;
+    }
 </style>
 """, unsafe_allow_html=True)
+
+# ==================== LOGIN SYSTEM ====================
+# Configuration des utilisateurs (Manager RH)
+USERS = {
+    "drh": "drh123"
+}
+
+if "logged_in" not in st.session_state:
+    st.session_state.logged_in = False
+if "username" not in st.session_state:
+    st.session_state.username = ""
+
+def show_login():
+    # URL du logo (remplacez par votre URL)
+    LOGO_URL = "https://raw.githubusercontent.com/souhaferjani-glitch/RH-Dashboard/main/logo.png"
+    
+    st.markdown("""
+    <div style="display: flex; justify-content: center; align-items: center; min-height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+        <div style="background: white; padding: 2rem; border-radius: 1rem; box-shadow: 0 10px 30px rgba(0,0,0,0.2); text-align: center; width: 100%; max-width: 400px;">
+    """, unsafe_allow_html=True)
+    
+    # Logo dans la page login
+    st.markdown(f"""
+    <div style="text-align: center;">
+        <img src="{LOGO_URL}" style="width: 100px; height: 100px; border-radius: 50%; margin-bottom: 1rem; border: 3px solid #667eea;" 
+             onerror="this.style.display='none'; this.parentElement.innerHTML='<div style=\'width:100px;height:100px;background:#667eea;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;margin-bottom:1rem\'><span style=\'font-size:2.5rem;color:white\'>📊</span></div>'">
+        <h2 style="color: #1e293b;">RH Dashboard</h2>
+        <p style="color: #64748b;">La Pratique Electronique</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    st.markdown("---")
+    
+    # Champs de connexion
+    username = st.text_input("👤 Nom d'utilisateur", placeholder="rhmanager", key="login_user")
+    password = st.text_input("🔒 Mot de passe", placeholder="••••••••", type="password", key="login_pass")
+    
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        if st.button("🔐 Se connecter", use_container_width=True):
+            if username in USERS and USERS[username] == password:
+                st.session_state.logged_in = True
+                st.session_state.username = username
+                st.rerun()
+            else:
+                st.error("❌ Nom d'utilisateur ou mot de passe incorrect")
+    
+    st.markdown("""
+    <div style="margin-top: 1rem; text-align: center;">
+        <p style="color: #94a3b8; font-size: 0.7rem;">Contactez l'administrateur pour obtenir vos accès</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    st.markdown("</div></div>", unsafe_allow_html=True)
+    
+    return False
+
+if not st.session_state.logged_in:
+    show_login()
+    st.stop()
 
 # ==================== DONNÉES ====================
 @st.cache_data
@@ -280,12 +378,29 @@ contrats_alertes = contrats_expiration[contrats_expiration['Date_Fin'] <= date_l
 
 # ==================== SIDEBAR AVEC LOGO ====================
 with st.sidebar:
-    # Logo en haut du sidebar
-    st.markdown("""
+    # Logo dans le sidebar
+    LOGO_URL = "https://raw.githubusercontent.com/souhaferjani-glitch/RH-Dashboard/main/logo.png"
+    
+    st.markdown(f"""
     <div class="sidebar-logo">
-        <img src="https://raw.githubusercontent.com/souhaferjani-glitch/RH-Dashboard/main/logo.PNG" alt="Logo">
+        <img src="{LOGO_URL}" alt="Logo">
         <h3 style="color: #667eea; margin: 10px 0 0 0;">RH Dashboard</h3>
         <p style="color: #6c757d; font-size: 0.7rem;">La Pratique Electronique</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    st.markdown("---")
+    
+    # Informations utilisateur connecté
+    st.markdown(f"""
+    <div style="background: #f0f2f6; padding: 10px; border-radius: 10px; margin-bottom: 10px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="font-size: 1.2rem;">👤</span>
+            <div>
+                <div style="font-weight: 600;">{st.session_state.username}</div>
+                <div style="font-size: 0.7rem; color: #6c757d;">Manager RH</div>
+            </div>
+        </div>
     </div>
     """, unsafe_allow_html=True)
     
@@ -305,12 +420,20 @@ with st.sidebar:
     ])
     
     st.markdown("---")
+    
+    # Bouton de déconnexion
+    if st.button("🚪 Déconnexion", use_container_width=True):
+        st.session_state.logged_in = False
+        st.session_state.username = ""
+        st.rerun()
+    
+    st.markdown("---")
     st.caption("© 2025 - La Pratique Electronique")
     st.caption("Souha Ferjani | Projet PFE")
 
 # ==================== PAGE ACCUEIL ====================
 if page == "🏠 Accueil":
-    st.markdown('<div class="main-header"><h1>📊 Tableau de Bord RH</h1><p>La Pratique Electronique - Suivi des indicateurs clés</p></div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="main-header"><h1>📊 Tableau de Bord RH</h1><p>Bienvenue {st.session_state.username} | La Pratique Electronique - Suivi des indicateurs clés</p></div>', unsafe_allow_html=True)
     
     col1, col2, col3, col4 = st.columns(4)
     
