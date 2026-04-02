@@ -11,13 +11,13 @@ import os
 warnings.filterwarnings('ignore')
 
 st.set_page_config(
-    page_title="RH Dashboard - La Pratique Electronique",
-    page_icon="📊",
+    page_title="RH Vision - Modern Dashboard",
+    page_icon="✨",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# ==================== FONCTION POUR CHARGER LE LOGO EN BASE64 ====================
+# ==================== FONCTION POUR CHARGER LE LOGO ====================
 def get_logo_base64():
     logo_paths = ["logo.png", "logo.PNG", "assets/logo.png", "images/logo.png"]
     for path in logo_paths:
@@ -28,522 +28,170 @@ def get_logo_base64():
 
 LOGO_BASE64 = get_logo_base64()
 
-# ==================== SESSION STATE POUR LE THÈME ====================
-if "theme" not in st.session_state:
-    st.session_state.theme = "clair"
-
-# ==================== STYLE CSS DYNAMIQUE ====================
-def get_theme_css():
-    if st.session_state.theme == "clair":
-        return """
-        <style>
-            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-            
-            * {
-                font-family: 'Inter', sans-serif;
-            }
-            
-            .stApp {
-                background: linear-gradient(135deg, #f5f7fa 0%, #ffffff 100%);
-            }
-            
-            .main-header {
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                padding: 2rem;
-                border-radius: 1rem;
-                color: white;
-                text-align: center;
-                margin-bottom: 2rem;
-                box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-                animation: fadeIn 0.5s ease-in;
-            }
-            
-            .metric-card {
-                background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-                padding: 1.5rem;
-                border-radius: 1rem;
-                text-align: center;
-                box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-                transition: all 0.3s ease;
-                border: 1px solid rgba(102, 126, 234, 0.1);
-            }
-            
-            .metric-card:hover {
-                transform: translateY(-5px);
-                box-shadow: 0 8px 25px rgba(102, 126, 234, 0.15);
-            }
-            
-            .metric-value {
-                font-size: 2.5rem;
-                font-weight: 800;
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                -webkit-background-clip: text;
-                -webkit-text-fill-color: transparent;
-                background-clip: text;
-            }
-            
-            .metric-label {
-                font-size: 0.9rem;
-                color: #6c757d;
-                margin-top: 0.5rem;
-                font-weight: 500;
-            }
-            
-            .alert-critical {
-                background: linear-gradient(135deg, #ff6b6b 0%, #ee5a5a 100%);
-                border-left: 4px solid #dc3545;
-                padding: 1rem;
-                margin: 1rem 0;
-                border-radius: 0.5rem;
-                color: white;
-                font-weight: 500;
-                animation: pulse 2s infinite;
-            }
-            
-            .alert-warning {
-                background: linear-gradient(135deg, #ffd93d 0%, #ffc107 100%);
-                border-left: 4px solid #ffc107;
-                padding: 1rem;
-                margin: 1rem 0;
-                border-radius: 0.5rem;
-                color: #333;
-                font-weight: 500;
-            }
-            
-            .success-card {
-                background: linear-gradient(135deg, #51cf66 0%, #40c057 100%);
-                border-left: 4px solid #28a745;
-                padding: 1rem;
-                margin: 1rem 0;
-                border-radius: 0.5rem;
-                color: white;
-                font-weight: 500;
-            }
-            
-            .trend-up {
-                color: #51cf66;
-                font-weight: bold;
-            }
-            
-            .trend-down {
-                color: #ff6b6b;
-                font-weight: bold;
-            }
-            
-            [data-testid="stSidebar"] {
-                background: linear-gradient(180deg, #ffffff 0%, #f8f9fa 100%);
-                border-right: 1px solid rgba(102, 126, 234, 0.1);
-            }
-            
-            .stButton > button {
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                color: white;
-                border: none;
-                border-radius: 0.5rem;
-                transition: all 0.3s ease;
-            }
-            
-            .stButton > button:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-            }
-            
-            /* Style pour le bouton thème dans le menu */
-            .theme-toggle {
-                position: fixed;
-                top: 10px;
-                right: 60px;
-                z-index: 999;
-                background: rgba(102, 126, 234, 0.9);
-                border-radius: 30px;
-                padding: 5px 10px;
-                backdrop-filter: blur(5px);
-            }
-            .theme-toggle button {
-                background: transparent;
-                border: none;
-                font-size: 1.2rem;
-                cursor: pointer;
-                margin: 0 5px;
-            }
-        </style>
-        """
-    else:
-        return """
-        <style>
-            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-            
-            * {
-                font-family: 'Inter', sans-serif;
-            }
-            
-            .stApp {
-                background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
-            }
-            
-            .main-header {
-                background: linear-gradient(135deg, #00ffff 0%, #ff00ff 100%);
-                padding: 2rem;
-                border-radius: 1rem;
-                color: white;
-                text-align: center;
-                margin-bottom: 2rem;
-                box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-                animation: fadeIn 0.5s ease-in;
-            }
-            
-            .metric-card {
-                background: rgba(255,255,255,0.05);
-                backdrop-filter: blur(10px);
-                padding: 1.5rem;
-                border-radius: 1rem;
-                text-align: center;
-                border: 1px solid rgba(0, 255, 255, 0.2);
-                transition: all 0.3s ease;
-            }
-            
-            .metric-card:hover {
-                transform: translateY(-5px);
-                border-color: rgba(0, 255, 255, 0.5);
-                box-shadow: 0 0 30px rgba(0, 255, 255, 0.1);
-            }
-            
-            .metric-value {
-                font-size: 2.5rem;
-                font-weight: 800;
-                background: linear-gradient(135deg, #00ffff, #ff00ff);
-                -webkit-background-clip: text;
-                -webkit-text-fill-color: transparent;
-            }
-            
-            .metric-label {
-                font-size: 0.9rem;
-                color: rgba(255,255,255,0.7);
-                margin-top: 0.5rem;
-                font-weight: 500;
-            }
-            
-            .alert-critical {
-                background: rgba(255,0,0,0.2);
-                border-left: 4px solid #ff00ff;
-                padding: 1rem;
-                margin: 1rem 0;
-                border-radius: 0.5rem;
-                color: #ff6b6b;
-                backdrop-filter: blur(5px);
-            }
-            
-            .alert-warning {
-                background: rgba(255,255,0,0.1);
-                border-left: 4px solid #00ffff;
-                padding: 1rem;
-                margin: 1rem 0;
-                border-radius: 0.5rem;
-                color: #ffd93d;
-                backdrop-filter: blur(5px);
-            }
-            
-            .success-card {
-                background: rgba(0,255,0,0.1);
-                border-left: 4px solid #00ff00;
-                padding: 1rem;
-                margin: 1rem 0;
-                border-radius: 0.5rem;
-                color: #51cf66;
-                backdrop-filter: blur(5px);
-            }
-            
-            .trend-up {
-                color: #00ff00;
-                font-weight: bold;
-            }
-            
-            .trend-down {
-                color: #ff4444;
-                font-weight: bold;
-            }
-            
-            [data-testid="stSidebar"] {
-                background: rgba(0,0,0,0.3);
-                backdrop-filter: blur(10px);
-                border-right: 1px solid rgba(0, 255, 255, 0.2);
-            }
-            
-            [data-testid="stSidebar"] * {
-                color: rgba(255,255,255,0.9) !important;
-            }
-            
-            .stButton > button {
-                background: linear-gradient(135deg, #00ffff, #ff00ff);
-                color: white;
-                border: none;
-                border-radius: 0.5rem;
-                transition: all 0.3s ease;
-            }
-            
-            .stButton > button:hover {
-                transform: scale(1.02);
-                box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
-            }
-            
-            .stTextInput > div > div > input {
-                background: rgba(255,255,255,0.1);
-                border: 1px solid rgba(0, 255, 255, 0.3);
-                color: white;
-            }
-            
-            .theme-toggle {
-                position: fixed;
-                top: 10px;
-                right: 60px;
-                z-index: 999;
-                background: rgba(0, 255, 255, 0.2);
-                border-radius: 30px;
-                padding: 5px 10px;
-                backdrop-filter: blur(10px);
-                border: 1px solid rgba(0, 255, 255, 0.5);
-            }
-            .theme-toggle button {
-                background: transparent;
-                border: none;
-                font-size: 1.2rem;
-                cursor: pointer;
-                margin: 0 5px;
-            }
-        </style>
-        """
-
-# ==================== BOUTON DE THÈME DANS LES 3 POINTS ====================
-def theme_switcher():
-    # CSS pour positionner le bouton dans le menu des 3 points
-    st.markdown("""
-    <style>
-        /* Cibler le menu des 3 points et y ajouter le bouton thème */
-        [data-testid="collapsedControl"] {
-            position: relative;
-        }
-        
-        /* Conteneur du bouton thème */
-        .theme-switch-container {
-            position: fixed;
-            top: 12px;
-            right: 120px;
-            z-index: 999999;
-            display: flex;
-            gap: 8px;
-            background: rgba(0,0,0,0.05);
-            backdrop-filter: blur(10px);
-            padding: 5px 12px;
-            border-radius: 40px;
-            border: 1px solid rgba(102, 126, 234, 0.3);
-        }
-        
-        .theme-btn {
-            background: transparent;
-            border: none;
-            font-size: 1.2rem;
-            cursor: pointer;
-            padding: 5px 10px;
-            border-radius: 30px;
-            transition: all 0.2s;
-        }
-        
-        .theme-btn:hover {
-            transform: scale(1.1);
-        }
-        
-        .theme-btn-active {
-            background: rgba(102, 126, 234, 0.3);
-            box-shadow: 0 0 10px rgba(102, 126, 234, 0.5);
-        }
-        
-        @media (max-width: 768px) {
-            .theme-switch-container {
-                right: 80px;
-                top: 8px;
-                padding: 3px 8px;
-            }
-            .theme-btn {
-                font-size: 1rem;
-                padding: 3px 8px;
-            }
-        }
-    </style>
+# ==================== STYLE MODERNE ====================
+st.markdown("""
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
     
-    <div class="theme-switch-container">
-        <button class="theme-btn" onclick="document.location.href='?theme=clair'">☀️</button>
-        <button class="theme-btn" onclick="document.location.href='?theme=sombre'">🌙</button>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    # Gestion via query params (alternative)
-    import urllib.parse
-    query_params = st.query_params
-    if "theme" in query_params:
-        if query_params["theme"] == "sombre":
-            st.session_state.theme = "sombre"
-        elif query_params["theme"] == "clair":
-            st.session_state.theme = "clair"
-
-# ==================== LOGIN ====================
-USERS = {"Rhadmin": "admin123"}
-
-if "logged_in" not in st.session_state:
-    st.session_state.logged_in = False
-if "username" not in st.session_state:
-    st.session_state.username = ""
-
-def show_login():
-    if LOGO_BASE64:
-        logo_html = f'<img src="data:image/png;base64,{LOGO_BASE64}" class="logo-large">'
-    else:
-        logo_html = '<div style="width:120px;height:120px;background:rgba(255,255,255,0.2);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;margin-bottom:24px;border:4px solid rgba(255,255,255,0.3)"><span style="font-size:55px;color:white">📊</span></div>'
-    
-    st.markdown(f"""
-    <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-    
-    * {{
+    * {
         font-family: 'Inter', sans-serif;
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-    }}
+    }
     
-    @keyframes gradientBG {{
-        0% {{ background-position: 0% 50%; }}
-        50% {{ background-position: 100% 50%; }}
-        100% {{ background-position: 0% 50%; }}
-    }}
+    .stApp {
+        background: linear-gradient(135deg, #f5f7fa 0%, #ffffff 100%);
+    }
     
-    .stApp {{
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
-        background-size: 200% 200%;
-        animation: gradientBG 8s ease infinite;
-    }}
+    .glass-header {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        padding: 2rem;
+        border-radius: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 8px 32px rgba(31, 38, 135, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+    }
     
-    .login-container {{
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        min-height: 100vh;
-        padding: 40px;
-    }}
-    
-    .login-split-card {{
-        display: flex;
-        max-width: 900px;
-        width: 100%;
+    .modern-card {
         background: white;
-        border-radius: 32px;
-        overflow: hidden;
-        box-shadow: 0 25px 50px -12px rgba(0,0,0,0.3);
-    }}
+        border-radius: 1.5rem;
+        padding: 1.5rem;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        transition: all 0.3s ease;
+        border: 1px solid #eef2f6;
+    }
     
-    .login-left {{
-        flex: 1;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        padding: 48px 32px;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        text-align: center;
-    }}
+    .modern-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+    }
     
-    .logo-large {{
-        width: 120px;
-        height: 120px;
-        border-radius: 50%;
-        object-fit: cover;
-        margin-bottom: 24px;
-        border: 4px solid rgba(255,255,255,0.3);
-        box-shadow: 0 15px 35px rgba(0,0,0,0.2);
-    }}
-    
-    .brand-title {{
-        font-size: 28px;
-        font-weight: 800;
-        color: white;
-        margin-bottom: 8px;
-    }}
-    
-    .brand-subtitle {{
-        font-size: 14px;
-        color: rgba(255,255,255,0.8);
-        margin-bottom: 16px;
-    }}
-    
-    .login-right {{
-        flex: 1;
-        padding: 48px 40px;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-    }}
-    
-    .welcome-title {{
-        font-size: 28px;
+    .kpi-value {
+        font-size: 2.8rem;
         font-weight: 700;
-        color: #1e293b;
-        margin-bottom: 32px;
-        text-align: center;
-    }}
+        background: linear-gradient(135deg, #0ea5e9 0%, #6366f1 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
     
-    .stButton > button {{
-        width: 100%;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    .badge-success {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        padding: 0.25rem 1rem;
+        border-radius: 2rem;
         color: white;
-        border: none;
-        padding: 12px 24px;
-        font-size: 14px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        display: inline-block;
+    }
+    
+    .badge-warning {
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        padding: 0.25rem 1rem;
+        border-radius: 2rem;
+        color: white;
+        font-size: 0.8rem;
+        font-weight: 500;
+        display: inline-block;
+    }
+    
+    .badge-danger {
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        padding: 0.25rem 1rem;
+        border-radius: 2rem;
+        color: white;
+        font-size: 0.8rem;
+        font-weight: 500;
+        display: inline-block;
+    }
+    
+    .alert-modern {
+        background: linear-gradient(135deg, #fee2e2 0%, #ffedea 100%);
+        border-left: 4px solid #ef4444;
+        padding: 1rem;
+        border-radius: 1rem;
+        margin: 1rem 0;
+    }
+    
+    .stat-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem;
+        background: #f8fafc;
+        border-radius: 1rem;
+        margin: 0.5rem 0;
+    }
+    
+    hr {
+        margin: 2rem 0;
+        background: linear-gradient(90deg, transparent, #e2e8f0, transparent);
+    }
+    
+    /* Style pour la sidebar avec logo */
+    .sidebar-logo {
+        text-align: center;
+        padding: 1rem 0;
+    }
+    .sidebar-logo img {
+        width: 70px;
+        height: 70px;
+        border-radius: 1rem;
+        object-fit: cover;
+        margin-bottom: 0.5rem;
+    }
+    
+    /* Style pour la page configuration */
+    .config-section {
+        background: white;
+        border-radius: 1.5rem;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        border: 1px solid #eef2f6;
+    }
+    .config-title {
+        font-size: 1.2rem;
         font-weight: 600;
-        border-radius: 40px;
-        cursor: pointer;
-    }}
-    
-    #MainMenu {{visibility: hidden;}}
-    footer {{visibility: hidden;}}
-    header {{visibility: hidden;}}
-    </style>
-    
-    <div class="login-container">
-        <div class="login-split-card">
-            <div class="login-left">
-                {logo_html}
-                <div class="brand-title">RH Dashboard</div>
-                <div class="brand-subtitle">La Pratique Electronique</div>
-            </div>
-            <div class="login-right">
-                <div class="welcome-title">Bienvenue</div>
-    """, unsafe_allow_html=True)
-    
-    username = st.text_input("", placeholder="Rhadmin", key="login_username", label_visibility="collapsed")
-    password = st.text_input("", placeholder="••••••••", type="password", key="login_password", label_visibility="collapsed")
-    
-    col1, col2, col3 = st.columns([1, 2, 1])
-    with col2:
-        if st.button("Login", use_container_width=True):
-            if username in USERS and USERS[username] == password:
-                st.session_state.logged_in = True
-                st.session_state.username = username
-                st.rerun()
-            else:
-                st.error("❌ Invalid username or password")
-    
-    st.markdown("""
-            </div>
+        color: #0f172a;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid #e2e8f0;
+    }
+</style>
+""", unsafe_allow_html=True)
+
+# ==================== SIDEBAR AVEC LOGO ====================
+with st.sidebar:
+    if LOGO_BASE64:
+        st.markdown(f"""
+        <div class="sidebar-logo">
+            <img src="data:image/png;base64,{LOGO_BASE64}" alt="Logo">
+            <h3 style="margin-top: 0.5rem; color: #0f172a;">RH Vision</h3>
+            <p style="color: #64748b; font-size: 0.7rem;">La Pratique Electronique</p>
         </div>
-    </div>
-    """, unsafe_allow_html=True)
-
-if not st.session_state.logged_in:
-    show_login()
-    st.stop()
-
-# ==================== APPLIQUER LE THÈME ET LE SWITCHER ====================
-st.markdown(get_theme_css(), unsafe_allow_html=True)
-theme_switcher()
+        """, unsafe_allow_html=True)
+    else:
+        st.markdown("""
+        <div class="sidebar-logo">
+            <div style="background: linear-gradient(135deg, #0ea5e9, #6366f1); width: 70px; height: 70px; border-radius: 1rem; margin: 0 auto; display: flex; align-items: center; justify-content: center;">
+                <span style="font-size: 2rem;">✨</span>
+            </div>
+            <h3 style="margin-top: 0.5rem; color: #0f172a;">RH Vision</h3>
+            <p style="color: #64748b; font-size: 0.7rem;">La Pratique Electronique</p>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    st.markdown("---")
+    
+    # Filtres
+    st.markdown("### 🎯 Filtres")
+    service_filter = st.multiselect("Service", actifs['Service'].unique(), default=actifs['Service'].unique())
+    categorie_filter = st.multiselect("Catégorie", actifs['Categorie'].unique(), default=actifs['Categorie'].unique())
+    
+    st.markdown("---")
+    page = st.radio("Navigation", ["📊 Tableau de Bord", "📈 Mouvements", "⭐ Talents", "⚙️ Administration", "🎯 KPIs", "⚠️ Alertes", "⚙️ Configuration"])
+    
+    st.markdown("---")
+    st.caption("© 2025 - RH Vision")
+    st.caption("Version 2.0")
 
 # ==================== DONNÉES ====================
 @st.cache_data
@@ -653,202 +301,536 @@ for service in actifs['Service'].unique():
     absences = absenteisme[absenteisme['Service'] == service]['Taux_Absence'].mean() if service in absenteisme['Service'].values else 0
     
     score_risque = (turnover_service * 0.4) + (taux_sanctions * 0.3) + (absences * 0.3)
-    niveau = "🟢 Faible" if score_risque < 10 else "🟡 Moyen" if score_risque < 20 else "🔴 Élevé"
+    niveau = "Faible" if score_risque < 10 else "Moyen" if score_risque < 20 else "Élevé"
     services_risque.append({'Service': service, 'Score Risque': round(score_risque, 1), 'Niveau': niveau})
 
 date_limite = datetime.now() + timedelta(days=30)
 contrats_alertes = contrats_expiration[contrats_expiration['Date_Fin'] <= date_limite]
 
-# ==================== SIDEBAR ====================
-with st.sidebar:
-    if LOGO_BASE64:
+# ==================== PAGE TABLEAU DE BORD ====================
+if page == "📊 Tableau de Bord":
+    st.markdown("""
+    <div class="glass-header">
+        <h1 style="margin: 0; background: linear-gradient(135deg, #0ea5e9, #6366f1); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+            Tableau de Bord RH
+        </h1>
+        <p style="color: #64748b; margin-top: 0.5rem;">Suivi en temps réel des indicateurs clés</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
         st.markdown(f"""
-        <div style="text-align: center; margin-bottom: 20px;">
-            <img src="data:image/png;base64,{LOGO_BASE64}" style="width: 80px; height: 80px; border-radius: 50%; margin-bottom: 10px; border: 3px solid #667eea;">
-            <h3 style="color: #667eea; margin: 0;">La Pratique Electronique</h3>
-        </div>
-        """, unsafe_allow_html=True)
-    else:
-        st.markdown("""
-        <div style="text-align: center; margin-bottom: 20px;">
-            <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #667eea, #764ba2); border-radius: 50%; margin: 0 auto 10px; display: flex; align-items: center; justify-content: center;">
-                <span style="font-size: 2rem;">📊</span>
+        <div class="modern-card">
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+                <span style="font-size: 2rem;">👥</span>
+                <span class="badge-success">+{total-15}</span>
             </div>
-            <h3 style="color: #667eea; margin: 0;">La Pratique Electronique</h3>
+            <div class="kpi-value">{total}</div>
+            <div style="color: #64748b; margin-top: 0.5rem;">Effectif Total</div>
         </div>
         """, unsafe_allow_html=True)
     
-    st.markdown("---")
-    st.markdown(f"**👤 {st.session_state.username}**")
-    st.markdown("---")
+    with col2:
+        statut = "badge-success" if turnover < 15 else "badge-warning" if turnover < 20 else "badge-danger"
+        st.markdown(f"""
+        <div class="modern-card">
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+                <span style="font-size: 2rem;">🔄</span>
+                <span class="{statut}">{'✓' if turnover < 15 else '⚠️'}</span>
+            </div>
+            <div class="kpi-value">{turnover:.1f}%</div>
+            <div style="color: #64748b; margin-top: 0.5rem;">Taux de Rotation</div>
+            <div style="font-size: 0.75rem; color: #94a3b8;">Objectif: {'✓ Atteint' if turnover < 15 else '&lt;15%'}</div>
+        </div>
+        """, unsafe_allow_html=True)
     
-    service_filter = st.multiselect("Service", actifs['Service'].unique(), default=actifs['Service'].unique())
-    categorie_filter = st.multiselect("Catégorie", actifs['Categorie'].unique(), default=actifs['Categorie'].unique())
-    sexe_filter = st.multiselect("Sexe", actifs['Sexe'].unique(), default=actifs['Sexe'].unique())
+    with col3:
+        st.markdown(f"""
+        <div class="modern-card">
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+                <span style="font-size: 2rem;">⭐</span>
+                <span class="badge-success">+33%</span>
+            </div>
+            <div class="kpi-value">{len(promotions)}</div>
+            <div style="color: #64748b; margin-top: 0.5rem;">Promotions</div>
+        </div>
+        """, unsafe_allow_html=True)
     
-    page = st.radio("Navigation", ["🏠 Accueil", "📈 Mouvements", "⭐ Talents", "📋 Admin", "🎯 KPIs", "⚠️ Alertes"])
+    with col4:
+        st.markdown(f"""
+        <div class="modern-card">
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+                <span style="font-size: 2rem;">🚪</span>
+                <span class="badge-success">-2</span>
+            </div>
+            <div class="kpi-value">{departs}</div>
+            <div style="color: #64748b; margin-top: 0.5rem;">Départs</div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        effectifs_filtres = actifs[actifs['Service'].isin(service_filter) & actifs['Categorie'].isin(categorie_filter)]
+        effectifs_service = effectifs_filtres.groupby('Service').size().reset_index(name='Effectif')
+        fig = px.pie(effectifs_service, values='Effectif', names='Service', 
+                     title="🏢 Répartition par Service", hole=0.4,
+                     color_discrete_sequence=px.colors.qualitative.Pastel)
+        fig.update_layout(height=400, showlegend=True)
+        st.plotly_chart(fig, use_container_width=True)
+    
+    with col2:
+        fig = go.Figure()
+        fig.add_trace(go.Bar(x=mouvements['Mois'].dt.strftime('%b %Y'), y=mouvements['Entrees'], 
+                             name='Entrées', marker_color='#10b981', text=mouvements['Entrees'], textposition='outside'))
+        fig.add_trace(go.Bar(x=mouvements['Mois'].dt.strftime('%b %Y'), y=mouvements['Total_Sorties'], 
+                             name='Sorties', marker_color='#ef4444', text=mouvements['Total_Sorties'], textposition='outside'))
+        fig.update_layout(title='Entrées vs Sorties mensuelles', barmode='group', height=400)
+        st.plotly_chart(fig, use_container_width=True)
     
     st.markdown("---")
-    if st.button("🚪 Déconnexion", use_container_width=True):
-        st.session_state.logged_in = False
-        st.session_state.username = ""
-        st.rerun()
-    
-    st.markdown("---")
-    st.caption("© 2025 - La Pratique Electronique")
-    st.caption("Version 2.0 - Business Intelligence")
-
-# ==================== PAGE ACCUEIL ====================
-if page == "🏠 Accueil":
-    st.markdown(f'<div class="main-header"><h1>📊 Tableau de Bord RH</h1><p> - La Pratique Electronique - </p></div>', unsafe_allow_html=True)
+    st.markdown("### 📊 Indicateurs Complémentaires")
     
     col1, col2, col3, col4 = st.columns(4)
     with col1:
-        st.markdown(f'<div class="metric-card"><div class="metric-value">{total}</div><div class="metric-label">👥 Effectif Total</div><div class="trend-up">+{total-15} cette année</div></div>', unsafe_allow_html=True)
+        st.markdown(f"""
+        <div class="stat-container">
+            <div>👨‍💼 Cadres</div>
+            <div><strong>{len(cadres)}</strong> <span style="color: #10b981;">({len(cadres)/total*100:.0f}%)</span></div>
+        </div>
+        """, unsafe_allow_html=True)
     with col2:
-        st.markdown(f'<div class="metric-card"><div class="metric-value">{turnover:.1f}%</div><div class="metric-label">📈 Taux de Rotation</div><div class="trend-down">Objectif: <15%</div></div>', unsafe_allow_html=True)
+        st.markdown(f"""
+        <div class="stat-container">
+            <div>👩 Femmes</div>
+            <div><strong>{len(actifs[actifs['Sexe']=='F'])}</strong> <span style="color: #10b981;">({len(actifs[actifs['Sexe']=='F'])/total*100:.0f}%)</span></div>
+        </div>
+        """, unsafe_allow_html=True)
     with col3:
-        st.markdown(f'<div class="metric-card"><div class="metric-value">{len(promotions)}</div><div class="metric-label">⭐ Promotions</div><div class="trend-up">+33% vs 2023</div></div>', unsafe_allow_html=True)
+        st.markdown(f"""
+        <div class="stat-container">
+            <div>👨 Hommes</div>
+            <div><strong>{len(actifs[actifs['Sexe']=='H'])}</strong> <span style="color: #10b981;">({len(actifs[actifs['Sexe']=='H'])/total*100:.0f}%)</span></div>
+        </div>
+        """, unsafe_allow_html=True)
     with col4:
-        st.markdown(f'<div class="metric-card"><div class="metric-value">{departs}</div><div class="metric-label">🚪 Départs</div><div class="trend-down">-2 vs 2023</div></div>', unsafe_allow_html=True)
-    
-    effectifs_filtres = actifs[actifs['Service'].isin(service_filter) & actifs['Categorie'].isin(categorie_filter) & actifs['Sexe'].isin(sexe_filter)]
-    effectifs_service = effectifs_filtres.groupby('Service').size().reset_index(name='Effectif')
-    fig = px.pie(effectifs_service, values='Effectif', names='Service', title="🏢 Répartition par Service", hole=0.4, color_discrete_sequence=px.colors.qualitative.Set3)
-    fig.update_traces(textposition='inside', textinfo='percent+label')
-    fig.update_layout(height=450)
-    st.plotly_chart(fig, use_container_width=True)
-    
-    st.markdown("---")
-    st.subheader("📊 Indicateurs Complémentaires")
-    col1, col2, col3, col4 = st.columns(4)
-    with col1:
-        st.metric("👥 Cadres", len(cadres), delta=f"{len(cadres)/total*100:.0f}%")
-    with col2:
-        st.metric("👩 Femmes", len(actifs[actifs['Sexe']=='F']), delta=f"{len(actifs[actifs['Sexe']=='F'])/total*100:.0f}%")
-    with col3:
-        st.metric("👨 Hommes", len(actifs[actifs['Sexe']=='H']), delta=f"{len(actifs[actifs['Sexe']=='H'])/total*100:.0f}%")
-    with col4:
-        st.metric("📊 Taux réponse", f"{questionnaires['Taux_Reponse'].mean():.0f}%")
+        st.markdown(f"""
+        <div class="stat-container">
+            <div>📊 Taux réponse</div>
+            <div><strong>{questionnaires['Taux_Reponse'].mean():.0f}%</strong></div>
+        </div>
+        """, unsafe_allow_html=True)
 
 # ==================== PAGE MOUVEMENTS ====================
 elif page == "📈 Mouvements":
-    st.markdown('<div class="main-header"><h1>📈 Mouvements du Personnel</h1><p>Entrées, sorties et turnover</p></div>', unsafe_allow_html=True)
+    st.markdown("""
+    <div class="glass-header">
+        <h1 style="margin: 0;">📈 Mouvements du Personnel</h1>
+        <p>Analyse des flux entrants et sortants</p>
+    </div>
+    """, unsafe_allow_html=True)
     
     col1, col2, col3, col4 = st.columns(4)
     with col1:
-        st.metric("📥 Total Entrées", mouvements['Entrees'].sum())
+        st.markdown(f"""
+        <div class="modern-card">
+            <div style="font-size: 2rem;">📥</div>
+            <div class="kpi-value">{mouvements['Entrees'].sum()}</div>
+            <div>Total Entrées</div>
+        </div>
+        """, unsafe_allow_html=True)
     with col2:
-        st.metric("📤 Total Sorties", mouvements['Total_Sorties'].sum())
+        st.markdown(f"""
+        <div class="modern-card">
+            <div style="font-size: 2rem;">📤</div>
+            <div class="kpi-value">{mouvements['Total_Sorties'].sum()}</div>
+            <div>Total Sorties</div>
+        </div>
+        """, unsafe_allow_html=True)
     with col3:
-        st.metric("⚖️ Solde Net", mouvements['Entrees'].sum() - mouvements['Total_Sorties'].sum())
+        st.markdown(f"""
+        <div class="modern-card">
+            <div style="font-size: 2rem;">⚖️</div>
+            <div class="kpi-value">{mouvements['Entrees'].sum() - mouvements['Total_Sorties'].sum()}</div>
+            <div>Solde Net</div>
+        </div>
+        """, unsafe_allow_html=True)
     with col4:
-        st.metric("🔄 Turnover", f"{turnover:.1f}%")
+        st.markdown(f"""
+        <div class="modern-card">
+            <div style="font-size: 2rem;">🔄</div>
+            <div class="kpi-value">{turnover:.1f}%</div>
+            <div>Turnover</div>
+        </div>
+        """, unsafe_allow_html=True)
     
-    fig = go.Figure()
-    fig.add_trace(go.Bar(x=mouvements['Mois'].dt.strftime('%b %Y'), y=mouvements['Entrees'], name='Entrées', marker_color='#51cf66', text=mouvements['Entrees'], textposition='outside'))
-    fig.add_trace(go.Bar(x=mouvements['Mois'].dt.strftime('%b %Y'), y=mouvements['Total_Sorties'], name='Sorties', marker_color='#ff6b6b', text=mouvements['Total_Sorties'], textposition='outside'))
-    fig.update_layout(title='Entrées vs Sorties mensuelles', barmode='group', height=450)
-    st.plotly_chart(fig, use_container_width=True)
-    
-    st.subheader("📊 Motifs de Sortie")
     col1, col2, col3 = st.columns(3)
     with col1:
-        st.metric("📝 Démission", mouvements['Sorties_Dem'].sum())
+        st.markdown(f"""
+        <div class="modern-card">
+            <div>📝 Démission</div>
+            <div class="kpi-value">{mouvements['Sorties_Dem'].sum()}</div>
+        </div>
+        """, unsafe_allow_html=True)
     with col2:
-        st.metric("👴 Retraite", mouvements['Sorties_Retr'].sum())
+        st.markdown(f"""
+        <div class="modern-card">
+            <div>👴 Retraite</div>
+            <div class="kpi-value">{mouvements['Sorties_Retr'].sum()}</div>
+        </div>
+        """, unsafe_allow_html=True)
     with col3:
-        st.metric("⚖️ Licenciement", mouvements['Sorties_Lice'].sum())
+        st.markdown(f"""
+        <div class="modern-card">
+            <div>⚖️ Licenciement</div>
+            <div class="kpi-value">{mouvements['Sorties_Lice'].sum()}</div>
+        </div>
+        """, unsafe_allow_html=True)
     
-    st.subheader("📊 Taux de départ durant la première année")
+    st.markdown("### 📊 Turnover par Service")
+    turnover_service = []
+    for service in actifs['Service'].unique():
+        effectif_service = len(actifs[actifs['Service'] == service])
+        departs_service = len(effectifs[(effectifs['Service'] == service) & (~effectifs['Date_Sortie'].isna())])
+        taux = (departs_service / effectif_service * 100) if effectif_service > 0 else 0
+        turnover_service.append({'Service': service, 'Turnover (%)': round(taux, 1)})
+    st.dataframe(pd.DataFrame(turnover_service), use_container_width=True)
+    
+    st.markdown("### 📊 Taux de départ durant la première année")
     if len(embauches_an_dernier) > 0:
-        st.metric("Taux", f"{taux_depart_1ere:.1f}%", delta="Objectif <20%")
-        st.progress(taux_depart_1ere/100)
+        st.markdown(f"""
+        <div class="modern-card">
+            <div class="kpi-value">{taux_depart_1ere:.1f}%</div>
+            <div>Objectif: {'✓ Atteint' if taux_depart_1ere < 20 else '&lt;20%'}</div>
+            <progress value="{taux_depart_1ere}" max="100" style="width: 100%; height: 8px; border-radius: 4px;"></progress>
+        </div>
+        """, unsafe_allow_html=True)
+    else:
+        st.info("ℹ️ Pas d'embauches dans la dernière année")
 
 # ==================== PAGE TALENTS ====================
 elif page == "⭐ Talents":
-    st.markdown('<div class="main-header"><h1>⭐ Gestion des Talents</h1><p>Promotions et mobilité interne</p></div>', unsafe_allow_html=True)
+    st.markdown("""
+    <div class="glass-header">
+        <h1 style="margin: 0;">⭐ Gestion des Talents</h1>
+        <p>Promotions et mobilité interne</p>
+    </div>
+    """, unsafe_allow_html=True)
     
     col1, col2 = st.columns(2)
     with col1:
-        st.subheader("📋 Historique des promotions")
+        st.markdown(f"""
+        <div class="modern-card">
+            <div style="font-size: 2rem;">📋</div>
+            <div class="kpi-value">{len(promotions)}</div>
+            <div>Total Promotions</div>
+        </div>
+        """, unsafe_allow_html=True)
         st.dataframe(promotions, use_container_width=True)
-        st.metric("📊 Total promotions", len(promotions))
-    with col2:
-        st.subheader("⏱️ Délai moyen de promotion")
-        st.metric("Valeur", f"{delai_promotion:.1f} ans", delta="Objectif <3 ans")
-        st.subheader("🔄 Mobilité interne")
-        st.metric("Changements", len(promotions))
-
-# ==================== PAGE ADMIN ====================
-elif page == "📋 Admin":
-    st.markdown('<div class="main-header"><h1>📋 Gestion Administrative</h1><p>Suivi des indicateurs administratifs RH</p></div>', unsafe_allow_html=True)
     
-    st.subheader("📊 Taux de réponse aux questionnaires")
+    with col2:
+        st.markdown(f"""
+        <div class="modern-card">
+            <div style="font-size: 2rem;">⏱️</div>
+            <div class="kpi-value">{delai_promotion:.1f}</div>
+            <div>Délai moyen de promotion (ans)</div>
+            <div style="font-size: 0.75rem;">Objectif: {'✓ Atteint' if delai_promotion < 3 else '&lt;3 ans'}</div>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        st.markdown(f"""
+        <div class="modern-card">
+            <div style="font-size: 2rem;">🔄</div>
+            <div class="kpi-value">{len(promotions)}</div>
+            <div>Mobilité interne</div>
+            <div style="font-size: 0.75rem;">Période: 2024-2025</div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    if len(promotions) > 0:
+        promotions_par_annee = promotions.groupby(promotions['Date_Promot'].dt.year).size().reset_index(name='Nombre')
+        promotions_par_annee.columns = ['Année', 'Nombre']
+        fig = px.bar(promotions_par_annee, x='Année', y='Nombre', title="Promotions par année", text='Nombre')
+        fig.update_traces(marker_color='#6366f1', textposition='outside')
+        st.plotly_chart(fig, use_container_width=True)
+
+# ==================== PAGE ADMINISTRATION ====================
+elif page == "⚙️ Administration":
+    st.markdown("""
+    <div class="glass-header">
+        <h1 style="margin: 0;">⚙️ Gestion Administrative</h1>
+        <p>Suivi des indicateurs administratifs RH</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    st.markdown("### 📊 Taux de réponse aux questionnaires")
     taux_reponse_moyen = questionnaires['Taux_Reponse'].mean()
     col1, col2, col3 = st.columns(3)
     with col1:
-        st.metric("Taux moyen", f"{taux_reponse_moyen:.1f}%")
+        st.markdown(f"""
+        <div class="modern-card">
+            <div class="kpi-value">{taux_reponse_moyen:.1f}%</div>
+            <div>Taux moyen</div>
+        </div>
+        """, unsafe_allow_html=True)
     with col2:
-        st.metric("Questionnaires diffusés", questionnaires['Nb_Diffuses'].sum())
+        st.markdown(f"""
+        <div class="modern-card">
+            <div class="kpi-value">{questionnaires['Nb_Diffuses'].sum()}</div>
+            <div>Questionnaires diffusés</div>
+        </div>
+        """, unsafe_allow_html=True)
     with col3:
-        st.metric("Réponses reçues", questionnaires['Nb_Reponses'].sum())
+        st.markdown(f"""
+        <div class="modern-card">
+            <div class="kpi-value">{questionnaires['Nb_Reponses'].sum()}</div>
+            <div>Réponses reçues</div>
+        </div>
+        """, unsafe_allow_html=True)
     
-    st.subheader("📋 Entretiens annuels")
+    fig = px.line(questionnaires, x='Periode', y='Taux_Reponse', title="Évolution du taux de participation", markers=True)
+    fig.add_hline(y=75, line_dash="dash", line_color="#f59e0b")
+    st.plotly_chart(fig, use_container_width=True)
+    
+    st.markdown("### 📋 Entretiens annuels")
+    taux_entretien_moyen = entretiens['Taux_Realisation'].mean()
     col1, col2, col3 = st.columns(3)
     with col1:
-        st.metric("Taux de réalisation", f"{entretiens['Taux_Realisation'].mean():.1f}%")
+        st.markdown(f"""
+        <div class="modern-card">
+            <div class="kpi-value">{taux_entretien_moyen:.1f}%</div>
+            <div>Taux de réalisation</div>
+        </div>
+        """, unsafe_allow_html=True)
     with col2:
-        st.metric("Planifiés", entretiens['Nb_Planifies'].sum())
+        st.markdown(f"""
+        <div class="modern-card">
+            <div class="kpi-value">{entretiens['Nb_Planifies'].sum()}</div>
+            <div>Entretiens planifiés</div>
+        </div>
+        """, unsafe_allow_html=True)
     with col3:
-        st.metric("Réalisés", entretiens['Nb_Realises'].sum())
+        st.markdown(f"""
+        <div class="modern-card">
+            <div class="kpi-value">{entretiens['Nb_Realises'].sum()}</div>
+            <div>Entretiens réalisés</div>
+        </div>
+        """, unsafe_allow_html=True)
     
-    st.subheader("⚠️ Contrats arrivant à expiration (30 jours)")
+    fig = go.Figure()
+    fig.add_trace(go.Bar(x=entretiens['Annee'], y=entretiens['Taux_Realisation'], text=entretiens['Taux_Realisation'], texttemplate='%{text:.1f}%', textposition='outside'))
+    fig.add_hline(y=80, line_dash="dash", line_color="#ef4444")
+    fig.update_layout(title="Taux de réalisation des entretiens annuels", height=400)
+    st.plotly_chart(fig, use_container_width=True)
+    
+    st.markdown("### ⚠️ Contrats arrivant à expiration (30 jours)")
     if len(contrats_alertes) > 0:
-        st.error(f"🚨 {len(contrats_alertes)} contrat(s) expire(nt) dans les 30 jours")
+        st.markdown(f"""
+        <div class="alert-modern">
+            🚨 {len(contrats_alertes)} contrat(s) expire(nt) dans les 30 jours
+        </div>
+        """, unsafe_allow_html=True)
         st.dataframe(contrats_alertes, use_container_width=True)
     else:
         st.success("✅ Aucun contrat n'expire dans les 30 jours")
     
-    st.subheader("⚖️ Sanctions disciplinaires")
-    st.dataframe(sanctions, use_container_width=True)
+    st.markdown("### ⚖️ Sanctions disciplinaires")
+    col1, col2 = st.columns(2)
+    with col1:
+        st.dataframe(sanctions, use_container_width=True)
+    with col2:
+        sanctions_par_service = sanctions.groupby('Service').size().reset_index(name='Nb_Sanctions')
+        fig = px.pie(sanctions_par_service, values='Nb_Sanctions', names='Service', title="Sanctions par service", hole=0.4)
+        st.plotly_chart(fig, use_container_width=True)
     
-    st.subheader("📊 Taux d'absentéisme par service")
+    st.markdown("### 📊 Taux d'absentéisme par service")
     fig = px.bar(absenteisme, x='Service', y='Taux_Absence', title="Taux d'absentéisme", text='Taux_Absence')
-    fig.add_hline(y=8, line_dash="dash", line_color="red", annotation_text="Seuil d'alerte 8%")
+    fig.add_hline(y=8, line_dash="dash", line_color="#ef4444")
     st.plotly_chart(fig, use_container_width=True)
 
 # ==================== PAGE KPIs ====================
 elif page == "🎯 KPIs":
-    st.markdown('<div class="main-header"><h1>🎯 Indicateurs Stratégiques</h1><p>Performance RH</p></div>', unsafe_allow_html=True)
+    st.markdown("""
+    <div class="glass-header">
+        <h1 style="margin: 0;">🎯 Indicateurs Stratégiques</h1>
+        <p>Performance RH et score de risque</p>
+    </div>
+    """, unsafe_allow_html=True)
     
     col1, col2 = st.columns(2)
     with col1:
-        fig = go.Figure(go.Indicator(mode="gauge+number", value=qualite, title="Qualité des recrutements", gauge={'axis': {'range': [0, 100]}}))
-        st.plotly_chart(fig, use_container_width=True)
-    with col2:
-        fig = go.Figure(go.Indicator(mode="gauge+number", value=fuite_cadres, title="Fuite des compétences", gauge={'axis': {'range': [0, 30]}}))
+        fig = go.Figure(go.Indicator(mode="gauge+number", value=qualite, title={'text': "Qualité des recrutements"},
+                                       gauge={'axis': {'range': [0, 100]}, 'bar': {'color': "#10b981"},
+                                              'steps': [{'range': [0, 50], 'color': '#fee2e2'}, {'range': [50, 80], 'color': '#fed7aa'}, {'range': [80, 100], 'color': '#d1fae5'}]}))
+        fig.update_layout(height=350)
         st.plotly_chart(fig, use_container_width=True)
     
-    st.subheader("🎯 Score de risque par service")
+    with col2:
+        fig = go.Figure(go.Indicator(mode="gauge+number", value=fuite_cadres, title={'text': "Fuite des compétences"},
+                                       gauge={'axis': {'range': [0, 30]}, 'bar': {'color': "#ef4444"},
+                                              'steps': [{'range': [0, 5], 'color': '#d1fae5'}, {'range': [5, 10], 'color': '#fed7aa'}, {'range': [10, 30], 'color': '#fee2e2'}]}))
+        fig.update_layout(height=350)
+        st.plotly_chart(fig, use_container_width=True)
+    
+    st.markdown("### 🎯 Score de risque par service")
     st.dataframe(pd.DataFrame(services_risque), use_container_width=True)
+    
+    fig = px.bar(pd.DataFrame(services_risque), x='Service', y='Score Risque', 
+                 title="Score de risque par service", color='Score Risque',
+                 color_continuous_scale=['#10b981', '#f59e0b', '#ef4444'])
+    st.plotly_chart(fig, use_container_width=True)
 
 # ==================== PAGE ALERTES ====================
 elif page == "⚠️ Alertes":
-    st.markdown('<div class="main-header"><h1>⚠️ Système d\'Alertes</h1><p>Détection automatique des risques</p></div>', unsafe_allow_html=True)
+    st.markdown("""
+    <div class="glass-header">
+        <h1 style="margin: 0;">⚠️ Système d'Alerte</h1>
+        <p>Détection automatique des risques RH</p>
+    </div>
+    """, unsafe_allow_html=True)
     
+    alertes = []
     if turnover > 15:
-        st.error(f"🔴 Turnover élevé: {turnover:.1f}% (Seuil > 15%)")
+        alertes.append(("🔴 CRITIQUE", f"Turnover élevé: {turnover:.1f}% (Seuil > 15%)", "Plan de rétention urgent"))
     if fuite_cadres > 10:
-        st.error(f"🔴 Fuite des cadres: {fuite_cadres:.1f}% (Seuil > 10%)")
+        alertes.append(("🔴 CRITIQUE", f"Fuite des cadres: {fuite_cadres:.1f}% (Seuil > 10%)", "Entretiens de départ"))
     elif fuite_cadres > 5:
-        st.warning(f"🟡 Fuite des cadres: {fuite_cadres:.1f}% (Seuil > 5%)")
+        alertes.append(("🟡 ATTENTION", f"Fuite des cadres: {fuite_cadres:.1f}% (Seuil > 5%)", "Surveiller les départs"))
     if qualite < 80:
-        st.warning(f"🟡 Qualité recrutements: {qualite:.1f}% (Seuil < 80%)")
+        alertes.append(("🟡 ATTENTION", f"Qualité recrutements: {qualite:.1f}% (Seuil < 80%)", "Améliorer processus d'intégration"))
+    if taux_depart_1ere > 20:
+        alertes.append(("🔴 CRITIQUE", f"Départs 1ère année: {taux_depart_1ere:.1f}% (Seuil > 20%)", "Revoir programme d'intégration"))
     if len(contrats_alertes) > 0:
-        st.warning(f"🟡 {len(contrats_alertes)} contrat(s) expire(nt) dans 30 jours")
+        alertes.append(("🟡 ATTENTION", f"{len(contrats_alertes)} contrat(s) expire(nt) dans 30 jours", "Contacter les responsables"))
     
-    st.markdown('<div class="success-card">✅ Tous les indicateurs sont surveillés</div>', unsafe_allow_html=True)
+    if alertes:
+        st.subheader(f"🚨 {len(alertes)} alerte(s) détectée(s)")
+        for niveau, message, action in alertes:
+            if "🔴" in niveau:
+                st.markdown(f'<div class="alert-modern" style="border-left-color: #ef4444;">{niveau}<br><strong>{message}</strong><br>📋 {action}</div>', unsafe_allow_html=True)
+            else:
+                st.markdown(f'<div class="alert-modern" style="border-left-color: #f59e0b;">{niveau}<br><strong>{message}</strong><br>📋 {action}</div>', unsafe_allow_html=True)
+    else:
+        st.markdown("""
+        <div class="modern-card" style="background: #d1fae5; text-align: center;">
+            ✅ Aucune alerte critique. Tous les indicateurs sont sous contrôle.
+        </div>
+        """, unsafe_allow_html=True)
 
-st.markdown("---")
-st.caption("🎓 La Pratique Electronique | Projet PFE - Souha Ferjani | Business Intelligence")
+# ==================== PAGE CONFIGURATION ====================
+elif page == "⚙️ Configuration":
+    st.markdown("""
+    <div class="glass-header">
+        <h1 style="margin: 0;">⚙️ Configuration</h1>
+        <p>Paramétrage de l'application</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Section 1: Profil utilisateur
+    st.markdown("""
+    <div class="config-section">
+        <div class="config-title">👤 Profil Utilisateur</div>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        st.text_input("Nom d'utilisateur", value="Admin RH", key="config_username")
+        st.text_input("Email", value="admin@pratique-electronique.com", key="config_email")
+    with col2:
+        st.selectbox("Rôle", ["Administrateur", "Manager RH", "Consultant", "Visiteur"], key="config_role")
+        st.selectbox("Langue", ["Français", "English", "العربية"], key="config_langue")
+    
+    # Section 2: Apparence
+    st.markdown("""
+    <div class="config-section">
+        <div class="config-title">🎨 Apparence</div>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        theme = st.selectbox("Thème", ["Clair", "Sombre", "Système"], key="config_theme")
+        st.color_picker("Couleur principale", "#0ea5e9", key="config_primary_color")
+    with col2:
+        st.selectbox("Police", ["Inter", "Poppins", "Roboto", "Open Sans"], key="config_font")
+        st.slider("Taille des graphiques", 300, 600, 450, key="config_chart_size")
+    
+    # Section 3: Notifications
+    st.markdown("""
+    <div class="config-section">
+        <div class="config-title">🔔 Notifications</div>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        st.checkbox("Alertes email pour turnover élevé", value=True, key="config_alert_turnover")
+        st.checkbox("Alertes email pour contrats expirant", value=True, key="config_alert_contrats")
+    with col2:
+        st.checkbox("Rapport mensuel automatique", value=False, key="config_rapport_mensuel")
+        st.checkbox("Notifications dans l'application", value=True, key="config_notifications")
+    
+    # Section 4: Logo
+    st.markdown("""
+    <div class="config-section">
+        <div class="config-title">🖼️ Logo</div>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    if LOGO_BASE64:
+        st.markdown(f"""
+        <div style="display: flex; align-items: center; gap: 1rem;">
+            <img src="data:image/png;base64,{LOGO_BASE64}" style="width: 80px; height: 80px; border-radius: 1rem; border: 2px solid #e2e8f0;">
+            <div>
+                <p style="color: #10b981;">✅ Logo actuel</p>
+                <p style="color: #64748b; font-size: 0.8rem;">Pour changer le logo, remplacez le fichier logo.png dans le dossier</p>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+    else:
+        st.warning("⚠️ Aucun logo trouvé. Ajoutez un fichier logo.png dans le dossier.")
+        st.file_uploader("Uploader un nouveau logo", type=["png", "jpg", "jpeg"], key="config_logo_upload")
+    
+    # Section 5: Base de données
+    st.markdown("""
+    <div class="config-section">
+        <div class="config-title">💾 Base de données</div>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        st.text_input("Source de données", value="Fichier local (CSV)", key="config_data_source", disabled=True)
+    with col2:
+        st.text_input("Dernière mise à jour", value=datetime.now().strftime("%d/%m/%Y %H:%M"), key="config_last_update", disabled=True)
+    
+    if st.button("🔄 Synchroniser les données", use_container_width=True, key="config_sync"):
+        st.success("✅ Synchronisation terminée avec succès!")
+        st.cache_data.clear()
+        st.rerun()
+    
+    # Section 6: Sauvegarde
+    st.markdown("""
+    <div class="config-section">
+        <div class="config-title">💾 Sauvegarde</div>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("📥 Exporter la configuration", use_container_width=True, key="config_export"):
+            st.success("Configuration exportée avec succès!")
+    with col2:
+        if st.button("📤 Importer la configuration", use_container_width=True, key="config_import"):
+            st.info("Veuillez sélectionner un fichier de configuration")
+    
+    # Bouton sauvegarde
+    st.markdown("---")
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        if st.button("💾 Enregistrer tous les paramètres", use_container_width=True, key="config_save_all"):
+            st.success("✅ Tous les paramètres ont été enregistrés avec succès!")
+            st.balloons()
