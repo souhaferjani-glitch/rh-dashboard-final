@@ -13,1026 +13,1091 @@ from pathlib import Path
 
 warnings.filterwarnings('ignore')
 
-# Configuration de la page
+# ==================== CONFIGURATION PAGE ====================
 st.set_page_config(
-    page_title="RH Analytics Dashboard",
+    page_title="HR Analytics Platform - La Pratique Electronique",
     page_icon="🎯",
     layout="wide",
-    initial_sidebar_state="collapsed"
+    initial_sidebar_state="expanded"
 )
 
-# ==================== INITIALISATION DE LA SESSION ====================
-if 'initialized' not in st.session_state:
-    st.session_state.initialized = True
-    st.session_state.auth_status = False
-    st.session_state.user_data = {}
-    st.session_state.preferences = {
-        'theme': 'light',
-        'accent_color': '#FF6B35',
-        'notifications': True,
-        'auto_refresh': False,
-        'dashboard_layout': 'compact'
+# ==================== SESSION STATE INITIALISATION ====================
+if "hr_settings" not in st.session_state:
+    st.session_state.hr_settings = {
+        "language": "fr",
+        "theme_mode": "light",
+        "accent_color": "#2E86AB",
+        "font_style": "sans-serif",
+        "chart_height": 400,
+        "enable_alerts": True,
+        "contract_alerts": True,
+        "auto_report": False,
+        "notify_email": True,
+        "last_refresh": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     }
-    st.session_state.data_cache = {}
-    st.session_state.last_refresh = datetime.now()
 
-# ==================== GESTION DES DONNÉES ====================
-class DataManager:
-    """Classe pour la gestion centralisée des données"""
-    
-    @staticmethod
-    @st.cache_data(ttl=300)
-    def load_all_data():
-        """Charge toutes les données nécessaires"""
-        
-        # Données des employés
-        employees = pd.DataFrame({
-            'ID': ['E001','E002','E003','E004','E005','E006','E007','E008','E009','E010',
-                   'E011','E012','E013','E014','E015','E016','E017','E018','E019','E020'],
-            'Hire_Date': pd.date_range('2020-01-01', periods=20, freq='ME'),
-            'Exit_Date': [pd.NaT] * 20,
-            'Exit_Reason': [''] * 20,
-            'Department': np.random.choice(['Sales', 'Engineering', 'HR', 'Marketing', 'Finance'], 20),
-            'Level': np.random.choice(['Junior', 'Senior', 'Manager', 'Director'], 20, p=[0.4, 0.35, 0.2, 0.05]),
-            'Gender': np.random.choice(['M', 'F'], 20, p=[0.55, 0.45]),
-            'Age': np.random.randint(22, 60, 20),
-            'Salary': np.random.randint(30000, 120000, 20),
-            'Performance_Score': np.random.uniform(2, 5, 20).round(1)
-        })
-        
-        # Ajouter quelques départs
-        exit_indices = [2, 7, 12, 15]
-        exit_reasons = ['Resignation', 'Retirement', 'Termination', 'Resignation']
-        for idx, reason in zip(exit_indices, exit_reasons):
-            employees.loc[idx, 'Exit_Date'] = pd.Timestamp('2024-12-01')
-            employees.loc[idx, 'Exit_Reason'] = reason
-        
-        # Données des mouvements mensuels
-        movements = pd.DataFrame({
-            'Month': pd.date_range('2024-01-01', periods=12, freq='ME'),
-            'Hires': np.random.poisson(2, 12),
-            'Resignations': np.random.poisson(1, 12),
-            'Retirements': np.random.poisson(0.3, 12).astype(int),
-            'Terminations': np.random.poisson(0.5, 12).astype(int)
-        })
-        
-        # Données des promotions
-        promotions = pd.DataFrame({
-            'Employee_ID': ['E001', 'E003', 'E008', 'E011', 'E014', 'E018'],
-            'Promotion_Date': pd.date_range('2024-01-15', periods=6, freq='ME'),
-            'Old_Title': ['Sales Rep', 'Engineer', 'HR Assistant', 'Marketing Coord', 'Financial Analyst', 'Tech Lead'],
-            'New_Title': ['Sales Manager', 'Senior Engineer', 'HR Manager', 'Marketing Manager', 'Finance Manager', 'Director'],
-            'Salary_Increase': np.random.uniform(0.08, 0.25, 6)
-        })
-        
-        # Données des enquêtes
-        surveys = pd.DataFrame({
-            'Period': pd.date_range('2024-01-01', periods=12, freq='ME').strftime('%b %Y'),
-            'Sent': [50] * 12,
-            'Responses': np.random.randint(30, 48, 12),
-            'Engagement_Score': np.random.uniform(65, 92, 12).round(1)
-        })
-        surveys['Response_Rate'] = (surveys['Responses'] / surveys['Sent'] * 100).round(1)
-        
-        # Données des entretiens
-        interviews = pd.DataFrame({
-            'Year': [2022, 2023, 2024],
-            'Scheduled': [18, 22, 25],
-            'Completed': [15, 19, 21],
-            'Completion_Rate': [83.3, 86.4, 84.0]
-        })
-        
-        # Données disciplinaires
-        disciplines = pd.DataFrame({
-            'Date': pd.date_range('2024-01-01', periods=15, freq='W'),
-            'Department': np.random.choice(['Sales', 'Engineering', 'HR', 'Marketing', 'Finance'], 15),
-            'Type': np.random.choice(['Warning', 'Suspension', 'Termination'], 15, p=[0.7, 0.2, 0.1]),
-            'Employee_ID': np.random.choice(['E001', 'E002', 'E003', 'E004', 'E005'], 15)
-        })
-        
-        # Données d'absentéisme
-        absenteeism = pd.DataFrame({
-            'Month': pd.date_range('2024-01-01', periods=12, freq='ME').strftime('%b %Y'),
-            'Department': np.repeat(['Sales', 'Engineering', 'HR', 'Marketing', 'Finance'], 12),
-            'Absence_Rate': np.random.uniform(2, 12, 60).round(1)
-        })
-        
-        # Contrats expirant
-        expiring_contracts = pd.DataFrame({
-            'Employee_ID': ['E009', 'E013', 'E016', 'E019'],
-            'End_Date': pd.to_datetime(['2026-04-15', '2026-04-25', '2026-05-10', '2026-05-20']),
-            'Contract_Type': ['CDD', 'CDD', 'CDD', 'CDD'],
-            'Department': ['Engineering', 'Sales', 'Marketing', 'Finance']
-        })
-        
-        return {
-            'employees': employees,
-            'movements': movements,
-            'promotions': promotions,
-            'surveys': surveys,
-            'interviews': interviews,
-            'disciplines': disciplines,
-            'absenteeism': absenteeism,
-            'expiring_contracts': expiring_contracts
-        }
-    
-    @staticmethod
-    def calculate_metrics(data):
-        """Calcule tous les indicateurs clés"""
-        
-        employees = data['employees']
-        movements = data['movements']
-        surveys = data['surveys']
-        interviews = data['interviews']
-        promotions = data['promotions']
-        
-        active = employees[employees['Exit_Date'].isna()]
-        total_active = len(active)
-        total_employees = len(employees)
-        departures = employees['Exit_Date'].notna().sum()
-        
-        # Turnover rate
-        turnover_rate = (departures / total_employees * 100) if total_employees > 0 else 0
-        
-        # Cadres (niveau Manager et Director)
-        executives = active[active['Level'].isin(['Manager', 'Director'])]
-        executive_count = len(executives)
-        executive_turnover = employees[(employees['Level'].isin(['Manager', 'Director'])) & 
-                                        (employees['Exit_Date'].notna())].shape[0]
-        executive_turnover_rate = (executive_turnover / (executive_count + executive_turnover) * 100) if (executive_count + executive_turnover) > 0 else 0
-        
-        # Qualité des recrutements (employés récents toujours actifs)
-        recent_hires = employees[employees['Hire_Date'] > datetime.now() - timedelta(days=365)]
-        retention_quality = (recent_hires[recent_hires['Exit_Date'].isna()].shape[0] / len(recent_hires) * 100) if len(recent_hires) > 0 else 0
-        
-        # Taux de réponse moyen
-        avg_response_rate = surveys['Response_Rate'].mean()
-        
-        # Taux d'entretiens
-        avg_interview_rate = interviews['Completion_Rate'].mean()
-        
-        # Délai moyen de promotion
-        promo_employees = promotions.merge(employees[['ID', 'Hire_Date']], left_on='Employee_ID', right_on='ID')
-        promo_employees['Time_to_Promotion'] = (promo_employees['Promotion_Date'] - promo_employees['Hire_Date']).dt.days / 365.25
-        avg_promotion_delay = promo_employees['Time_to_Promotion'].mean() if len(promo_employees) > 0 else 0
-        
-        # Turnover par département
-        dept_turnover = []
-        for dept in employees['Department'].unique():
-            dept_total = employees[employees['Department'] == dept].shape[0]
-            dept_exits = employees[(employees['Department'] == dept) & (employees['Exit_Date'].notna())].shape[0]
-            dept_rate = (dept_exits / dept_total * 100) if dept_total > 0 else 0
-            dept_turnover.append({'Department': dept, 'Turnover_Rate': round(dept_rate, 1), 'Exits': dept_exits, 'Total': dept_total})
-        
-        return {
-            'total_active': total_active,
-            'total_employees': total_employees,
-            'departures': departures,
-            'turnover_rate': turnover_rate,
-            'executive_count': executive_count,
-            'executive_turnover_rate': executive_turnover_rate,
-            'retention_quality': retention_quality,
-            'avg_response_rate': avg_response_rate,
-            'avg_interview_rate': avg_interview_rate,
-            'avg_promotion_delay': avg_promotion_delay,
-            'dept_turnover': pd.DataFrame(dept_turnover),
-            'total_promotions': len(promotions)
-        }
+if "logged_in" not in st.session_state:
+    st.session_state.logged_in = False
+    st.session_state.current_user = ""
+    st.session_state.user_role = ""
 
-# ==================== AUTHENTIFICATION ====================
-def show_auth_page():
-    """Page d'authentification moderne"""
+# ==================== FONCTIONS UTILITAIRES ====================
+def get_logo_base64():
+    """Récupère le logo en base64"""
+    logo_paths = ["logo.png", "logo.PNG", "assets/logo.png", "images/logo.png", "static/logo.png"]
+    for path in logo_paths:
+        if os.path.exists(path):
+            with open(path, "rb") as img_file:
+                return base64.b64encode(img_file.read()).decode()
+    return None
+
+LOGO_BASE64 = get_logo_base64()
+
+def apply_theme():
+    """Applique le thème sélectionné"""
+    if st.session_state.hr_settings["theme_mode"] == "dark":
+        st.markdown("""
+        <style>
+            .stApp { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); }
+            .hr-card { background: rgba(255,255,255,0.05); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); }
+            .hr-card:hover { border-color: rgba(46,134,171,0.5); background: rgba(255,255,255,0.08); }
+            .metric-label { color: #a0aec0; }
+            [data-testid="stSidebar"] { background: rgba(0,0,0,0.3); backdrop-filter: blur(10px); border-right: 1px solid rgba(255,255,255,0.1); }
+            [data-testid="stSidebar"] * { color: #e2e8f0 !important; }
+            .config-panel { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); }
+            .panel-title { color: #2E86AB; border-bottom-color: #2E86AB; }
+            .stButton > button { background: linear-gradient(135deg, #2E86AB 0%, #1B4965 100%); }
+        </style>
+        """, unsafe_allow_html=True)
+    else:
+        st.markdown("""
+        <style>
+            .stApp { background: linear-gradient(135deg, #f0f4f8 0%, #e2e8f0 100%); }
+            .hr-card { background: white; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+            .hr-card:hover { box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); transform: translateY(-2px); }
+            .metric-label { color: #64748b; }
+            [data-testid="stSidebar"] { background: white; border-right: 1px solid #e2e8f0; }
+            [data-testid="stSidebar"] * { color: #1e293b !important; }
+            .config-panel { background: #f8fafc; border: 1px solid #e2e8f0; }
+            .panel-title { color: #2E86AB; border-bottom-color: #e2e8f0; }
+        </style>
+        """, unsafe_allow_html=True)
+
+# ==================== STYLES CSS ====================
+st.markdown("""
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
     
-    st.markdown("""
-    <style>
-    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+    * { font-family: 'Inter', sans-serif; }
     
-    .auth-container {
-        min-height: 100vh;
+    .hr-header {
+        background: linear-gradient(120deg, #2E86AB 0%, #1B4965 100%);
+        padding: 1.5rem 2rem;
+        border-radius: 1rem;
+        color: white;
+        margin-bottom: 2rem;
         display: flex;
+        justify-content: space-between;
         align-items: center;
-        justify-content: center;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        position: relative;
-        overflow: hidden;
     }
     
-    .auth-card {
-        background: rgba(255, 255, 255, 0.95);
-        backdrop-filter: blur(10px);
-        border-radius: 2rem;
-        padding: 3rem;
-        width: 100%;
-        max-width: 450px;
-        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-        animation: slideUp 0.5s ease-out;
+    .hr-title h1 { margin: 0; font-size: 1.75rem; font-weight: 600; }
+    .hr-title p { margin: 0.25rem 0 0 0; opacity: 0.9; font-size: 0.875rem; }
+    
+    .hr-card {
+        border-radius: 1rem;
+        padding: 1.25rem;
+        transition: all 0.3s ease;
     }
     
-    @keyframes slideUp {
-        from {
-            opacity: 0;
-            transform: translateY(30px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
+    .metric-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #2E86AB;
+        margin: 0.5rem 0;
     }
     
-    .auth-logo {
-        text-align: center;
-        margin-bottom: 2rem;
+    .metric-label {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-weight: 600;
     }
     
-    .auth-logo-icon {
-        font-size: 4rem;
-        margin-bottom: 1rem;
-    }
+    .trend-positive { color: #10b981; font-size: 0.7rem; margin-top: 0.25rem; }
+    .trend-negative { color: #ef4444; font-size: 0.7rem; margin-top: 0.25rem; }
     
-    .auth-title {
-        font-size: 1.875rem;
-        font-weight: 800;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        text-align: center;
-        margin-bottom: 0.5rem;
-    }
-    
-    .auth-subtitle {
-        text-align: center;
-        color: #6b7280;
-        font-size: 0.875rem;
-        margin-bottom: 2rem;
-    }
-    
-    .stTextInput > div > div > input {
+    .alert-box-critical {
+        background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+        padding: 1rem;
         border-radius: 0.75rem;
-        border: 1.5px solid #e5e7eb;
-        padding: 0.75rem 1rem;
-        font-size: 0.875rem;
+        color: white;
+        margin: 0.75rem 0;
+        animation: pulse 1.5s infinite;
     }
     
-    .stTextInput > div > div > input:focus {
-        border-color: #667eea;
-        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    .alert-box-warning {
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        padding: 1rem;
+        border-radius: 0.75rem;
+        color: white;
+        margin: 0.75rem 0;
     }
+    
+    .alert-box-success {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        padding: 1rem;
+        border-radius: 0.75rem;
+        color: white;
+        margin: 0.75rem 0;
+    }
+    
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.02); opacity: 0.95; }
+    }
+    
+    .section-divider {
+        margin: 1.5rem 0;
+        border-top: 2px solid #e2e8f0;
+    }
+    
+    .config-panel {
+        border-radius: 1rem;
+        padding: 1.25rem;
+        margin-bottom: 1.25rem;
+    }
+    
+    .panel-title {
+        font-size: 1rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid;
+        display: inline-block;
+    }
+    
+    .badge {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.7rem;
+        font-weight: 500;
+    }
+    
+    .badge-success { background: #10b98120; color: #10b981; }
+    .badge-warning { background: #f59e0b20; color: #f59e0b; }
+    .badge-danger { background: #ef444420; color: #ef4444; }
     
     .stButton > button {
-        width: 100%;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border: none;
-        padding: 0.75rem;
-        border-radius: 0.75rem;
-        font-weight: 600;
-        font-size: 0.875rem;
+        border-radius: 0.5rem;
+        font-weight: 500;
         transition: all 0.3s;
     }
     
     .stButton > button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 10px 20px -10px rgba(102, 126, 234, 0.5);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(46,134,171,0.3);
     }
     
-    .auth-footer {
-        text-align: center;
-        margin-top: 1.5rem;
-        font-size: 0.75rem;
-        color: #9ca3af;
-    }
+    footer { visibility: hidden; }
+    #MainMenu { visibility: hidden; }
+</style>
+""", unsafe_allow_html=True)
+
+apply_theme()
+
+# ==================== LOGIN SYSTEM ====================
+USERS_DB = {
+    "rh_admin": {"password": "admin123", "role": "Administrateur"},
+    "rh_manager": {"password": "manager1", "role": "Manager RH"},
+    "consultant": {"password": "consult2", "role": "Consultant"}
+}
+
+def render_login():
+    st.markdown("""
+    <style>
+        .login-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 2rem;
+        }
+        .login-container {
+            max-width: 900px;
+            width: 100%;
+            background: white;
+            border-radius: 2rem;
+            overflow: hidden;
+            display: flex;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+        }
+        .login-brand {
+            flex: 1;
+            background: linear-gradient(135deg, #2E86AB 0%, #1B4965 100%);
+            padding: 3rem 2rem;
+            text-align: center;
+            color: white;
+        }
+        .login-brand h2 { font-size: 1.75rem; margin-bottom: 0.5rem; }
+        .login-brand p { opacity: 0.9; font-size: 0.875rem; }
+        .login-form {
+            flex: 1;
+            padding: 3rem 2rem;
+            background: white;
+        }
+        .login-form h3 { color: #1e293b; margin-bottom: 1.5rem; }
+        @media (max-width: 768px) {
+            .login-container { flex-direction: column; max-width: 400px; }
+        }
     </style>
     
-    <div class="auth-container">
-        <div class="auth-card">
-            <div class="auth-logo">
-                <div class="auth-logo-icon">🎯</div>
-                <div class="auth-title">RH Analytics</div>
-                <div class="auth-subtitle">Plateforme de pilotage RH</div>
+    <div class="login-wrapper">
+        <div class="login-container">
+            <div class="login-brand">
+                <div style="font-size: 4rem; margin-bottom: 1rem;">🎯</div>
+                <h2>HR Analytics</h2>
+                <p>La Pratique Electronique</p>
+                <p style="margin-top: 1rem; font-size: 0.75rem;">Business Intelligence Platform</p>
             </div>
+            <div class="login-form">
+                <h3>🔐 Accès Sécurisé</h3>
     """, unsafe_allow_html=True)
     
-    username = st.text_input("Identifiant", placeholder="admin@rh.com", key="auth_user")
-    password = st.text_input("Mot de passe", type="password", placeholder="••••••••", key="auth_pass")
+    username = st.text_input("Identifiant", placeholder="hr_admin", key="login_user", label_visibility="collapsed")
+    password = st.text_input("Mot de passe", type="password", placeholder="••••••••", key="login_pass", label_visibility="collapsed")
     
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
-        if st.button("🔐 Se connecter", use_container_width=True):
-            if username == "admin@rh.com" and password == "admin123":
-                st.session_state.auth_status = True
-                st.session_state.user_data = {'name': 'Administrateur', 'role': 'admin', 'email': username}
+        if st.button("Se connecter", use_container_width=True):
+            if username in USERS_DB and USERS_DB[username]["password"] == password:
+                st.session_state.logged_in = True
+                st.session_state.current_user = username
+                st.session_state.user_role = USERS_DB[username]["role"]
                 st.rerun()
             else:
                 st.error("❌ Identifiants invalides")
     
     st.markdown("""
-            <div class="auth-footer">
-                <p>© 2024 RH Analytics - Tous droits réservés</p>
             </div>
         </div>
     </div>
     """, unsafe_allow_html=True)
 
-# ==================== COMPOSANTS UI RÉUTILISABLES ====================
-class UIComponents:
-    """Composants d'interface réutilisables"""
-    
-    @staticmethod
-    def metric_card(title, value, trend=None, icon="📊", color="#FF6B35"):
-        """Carte métrique stylisée"""
-        
-        trend_html = ""
-        if trend:
-            trend_class = "trend-up" if trend > 0 else "trend-down"
-            trend_symbol = "▲" if trend > 0 else "▼"
-            trend_html = f'<div class="{trend_class}">{trend_symbol} {abs(trend)}%</div>'
-        
-        return f"""
-        <div class="metric-card" style="border-top: 4px solid {color};">
-            <div class="metric-icon">{icon}</div>
-            <div class="metric-value">{value}</div>
-            <div class="metric-title">{title}</div>
-            {trend_html}
-        </div>
-        """
-    
-    @staticmethod
-    def alert_banner(type_, message, action=None):
-        """Bannière d'alerte"""
-        
-        colors = {
-            'critical': {'bg': '#FEE2E2', 'border': '#EF4444', 'icon': '🔴'},
-            'warning': {'bg': '#FEF3C7', 'border': '#F59E0B', 'icon': '⚠️'},
-            'success': {'bg': '#D1FAE5', 'border': '#10B981', 'icon': '✅'},
-            'info': {'bg': '#DBEAFE', 'border': '#3B82F6', 'icon': 'ℹ️'}
-        }
-        
-        color = colors.get(type_, colors['info'])
-        
-        action_html = f'<div class="alert-action">{action}</div>' if action else ''
-        
-        return f"""
-        <div class="alert-banner" style="background: {color['bg']}; border-left-color: {color['border']};">
-            <div class="alert-icon">{color['icon']}</div>
-            <div class="alert-message">{message}</div>
-            {action_html}
-        </div>
-        """
-    
-    @staticmethod
-    def stat_grid(stats_data):
-        """Grille de statistiques"""
-        
-        cols = st.columns(len(stats_data))
-        for col, stat in zip(cols, stats_data):
-            with col:
-                st.markdown(UIComponents.metric_card(
-                    stat['title'], 
-                    stat['value'], 
-                    stat.get('trend'),
-                    stat.get('icon', '📊'),
-                    stat.get('color', '#FF6B35')
-                ), unsafe_allow_html=True)
+if not st.session_state.logged_in:
+    render_login()
+    st.stop()
 
-# ==================== STYLES CSS ====================
-def load_styles():
-    """Charge les styles CSS dynamiques"""
+# ==================== CHARGEMENT DES DONNÉES ====================
+@st.cache_data(ttl=3600)
+def load_hr_data():
+    """Charge toutes les données RH"""
     
-    accent_color = st.session_state.preferences.get('accent_color', '#FF6B35')
-    theme = st.session_state.preferences.get('theme', 'light')
+    # Effectifs
+    employees = pd.DataFrame({
+        'ID': ['E001','E002','E003','E004','E005','E006','E007','E008','E009','E010','E011','E012','E013','E014','E015'],
+        'Hire_Date': ['2020-01-01','2021-06-15','2022-03-10','2023-09-05','2021-01-20','2023-07-01','2022-11-15','2020-05-10','2024-02-01','2021-08-15','2023-03-20','2022-12-05','2021-07-10','2023-09-01','2022-04-15'],
+        'Exit_Date': [None,'2024-12-01',None,None,'2024-10-15',None,'2025-03-31',None,None,None,'2025-02-28',None,None,None,'2025-01-15'],
+        'Exit_Reason': [None,'Démission',None,None,'Retraite',None,'Démission',None,None,None,'Licenciement',None,None,None,'Démission'],
+        'Department': ['Commercial','RH','Technical','Commercial','Admin','Technical','Commercial','RH','Technical','Admin','Commercial','Technical','RH','Commercial','Technical'],
+        'Grade': ['Executive','Staff','Executive','Staff','Executive','Staff','Executive','Executive','Staff','Staff','Staff','Executive','Staff','Executive','Staff'],
+        'Gender': ['M','F','M','F','M','F','F','F','M','F','M','M','F','M','F']
+    })
+    employees['Hire_Date'] = pd.to_datetime(employees['Hire_Date'])
+    employees['Exit_Date'] = pd.to_datetime(employees['Exit_Date'], errors='coerce')
     
-    bg_color = '#F9FAFB' if theme == 'light' else '#111827'
-    card_bg = '#FFFFFF' if theme == 'light' else '#1F2937'
-    text_color = '#111827' if theme == 'light' else '#F9FAFB'
-    text_secondary = '#6B7280' if theme == 'light' else '#9CA3AF'
+    # Mouvements mensuels
+    movements = pd.DataFrame({
+        'Month': ['2024-01-01','2024-02-01','2024-03-01','2024-04-01','2024-05-01','2024-06-01'],
+        'Hires': [2,1,3,0,2,1],
+        'Resignations': [1,0,2,1,0,2],
+        'Retirements': [0,1,0,0,0,0],
+        'Terminations': [0,0,1,0,0,0]
+    })
+    movements['Month'] = pd.to_datetime(movements['Month'])
+    movements['Total_Exits'] = movements['Resignations'] + movements['Retirements'] + movements['Terminations']
     
-    st.markdown(f"""
-    <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+    # Promotions
+    promotions = pd.DataFrame({
+        'ID': ['E001','E003','E008','E012'],
+        'Promo_Date': ['2025-01-01','2024-03-15','2024-12-01','2024-06-10'],
+        'Old_Role': ['Senior Commercial','Technician','HR Assistant','Engineer'],
+        'New_Role': ['Commercial Director','Senior Technician','HR Manager','Principal Engineer']
+    })
+    promotions['Promo_Date'] = pd.to_datetime(promotions['Promo_Date'])
     
-    * {{
-        font-family: 'Inter', sans-serif;
-    }}
+    # Enquêtes
+    surveys = pd.DataFrame({
+        'Period': ['01/2024','02/2024','03/2024','04/2024','05/2024','06/2024'],
+        'Sent': [50,50,50,50,50,50],
+        'Responses': [42,38,45,40,44,39],
+        'Response_Rate': [84,76,90,80,88,78]
+    })
     
-    .stApp {{
-        background: {bg_color};
-    }}
+    # Entretiens
+    interviews = pd.DataFrame({
+        'Year': [2023,2024,2025],
+        'Planned': [20,22,15],
+        'Completed': [18,19,13],
+        'Completion_Rate': [90,86.4,86.7]
+    })
     
-    /* Cartes métriques */
-    .metric-card {{
-        background: {card_bg};
-        border-radius: 1rem;
-        padding: 1.25rem;
-        text-align: center;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        transition: all 0.3s;
-        margin: 0.5rem 0;
-    }}
+    # Sanctions
+    sanctions = pd.DataFrame({
+        'Date': ['2024-01-15','2024-02-20','2024-03-10','2024-04-05','2024-05-12'],
+        'Department': ['Commercial','Technical','RH','Commercial','Technical'],
+        'Type': ['Warning','Reprimand','Warning','Suspension','Reprimand']
+    })
+    sanctions['Date'] = pd.to_datetime(sanctions['Date'])
     
-    .metric-card:hover {{
-        transform: translateY(-2px);
-        box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
-    }}
+    # Absentéisme
+    absenteeism = pd.DataFrame({
+        'Month': ['01/2024','02/2024','03/2024','04/2024','05/2024','06/2024'],
+        'Department': ['Commercial','Technical','RH','Commercial','Technical','RH'],
+        'Absence_Rate': [5.2,6.8,3.5,6.1,7.2,4.2]
+    })
     
-    .metric-icon {{
-        font-size: 2rem;
-        margin-bottom: 0.5rem;
-    }}
+    # Contrats expirant
+    expiring_contracts = pd.DataFrame({
+        'ID': ['E004', 'E009', 'E014'],
+        'End_Date': pd.to_datetime(['2026-04-15', '2026-04-20', '2026-05-01']),
+        'Type': ['Fixed-term', 'Fixed-term', 'Fixed-term'],
+        'Department': ['Commercial', 'Technical', 'Commercial']
+    })
     
-    .metric-value {{
-        font-size: 2rem;
-        font-weight: 800;
-        color: {text_color};
-        margin: 0.25rem 0;
-    }}
-    
-    .metric-title {{
-        font-size: 0.75rem;
-        color: {text_secondary};
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-    }}
-    
-    .trend-up {{
-        color: #10B981;
-        font-size: 0.7rem;
-        margin-top: 0.5rem;
-    }}
-    
-    .trend-down {{
-        color: #EF4444;
-        font-size: 0.7rem;
-        margin-top: 0.5rem;
-    }}
-    
-    /* Alertes */
-    .alert-banner {{
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        padding: 1rem;
-        border-radius: 0.75rem;
-        border-left-width: 4px;
-        border-left-style: solid;
-        margin: 0.5rem 0;
-    }}
-    
-    .alert-icon {{
-        font-size: 1.25rem;
-    }}
-    
-    .alert-message {{
-        flex: 1;
-        font-weight: 500;
-    }}
-    
-    .alert-action {{
-        font-size: 0.75rem;
-        color: {accent_color};
-        font-weight: 600;
-    }}
-    
-    /* En-têtes */
-    .dashboard-header {{
-        background: linear-gradient(135deg, {accent_color}20 0%, {accent_color}05 100%);
-        border-radius: 1rem;
-        padding: 1.5rem;
-        margin-bottom: 1.5rem;
-    }}
-    
-    .dashboard-title {{
-        font-size: 1.5rem;
-        font-weight: 700;
-        color: {text_color};
-        margin-bottom: 0.25rem;
-    }}
-    
-    .dashboard-subtitle {{
-        color: {text_secondary};
-        font-size: 0.875rem;
-    }}
-    
-    /* Sections */
-    .section-card {{
-        background: {card_bg};
-        border-radius: 1rem;
-        padding: 1.5rem;
-        margin-bottom: 1.5rem;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    }}
-    
-    .section-title {{
-        font-size: 1.125rem;
-        font-weight: 600;
-        color: {text_color};
-        margin-bottom: 1rem;
-        padding-bottom: 0.5rem;
-        border-bottom: 2px solid {accent_color};
-        display: inline-block;
-    }}
-    
-    /* Sidebar */
-    [data-testid="stSidebar"] {{
-        background: {card_bg};
-        border-right: 1px solid {text_secondary}20;
-    }}
-    
-    /* Boutons */
-    .stButton > button {{
-        background: {accent_color};
-        color: white;
-        border: none;
-        border-radius: 0.5rem;
-        transition: all 0.3s;
-    }}
-    
-    .stButton > button:hover {{
-        transform: translateY(-2px);
-        box-shadow: 0 5px 15px {accent_color}40;
-    }}
-    
-    /* Tabs */
-    .stTabs [data-baseweb="tab-list"] {{
-        gap: 0.5rem;
-    }}
-    
-    .stTabs [data-baseweb="tab"] {{
-        background: {card_bg};
-        border-radius: 0.5rem;
-        padding: 0.5rem 1rem;
-    }}
-    </style>
-    """, unsafe_allow_html=True)
+    return employees, movements, promotions, surveys, interviews, sanctions, absenteeism, expiring_contracts
 
-# ==================== DASHBOARD PRINCIPAL ====================
-def render_dashboard():
-    """Affiche le dashboard principal"""
+employees, movements, promotions, surveys, interviews, sanctions, absenteeism, expiring_contracts = load_hr_data()
+
+# ==================== INDICATEURS CLÉS ====================
+def calculate_metrics():
+    """Calcule tous les indicateurs RH"""
     
-    # Chargement des données
-    data = DataManager.load_all_data()
-    metrics = DataManager.calculate_metrics(data)
+    active = employees[employees['Exit_Date'].isna()]
+    total_active = len(active)
+    total_exits = len(employees[~employees['Exit_Date'].isna()])
+    turnover_rate = (total_exits / len(employees) * 100) if len(employees) > 0 else 0
     
+    executives = employees[employees['Grade'] == 'Executive']
+    executive_exits = len(executives[~executives['Exit_Date'].isna()])
+    executive_leakage = (executive_exits / len(executives) * 100) if len(executives) > 0 else 0
+    
+    recent_hires = employees[employees['Hire_Date'] > datetime.now() - timedelta(days=365)]
+    retention_quality = (len(recent_hires[recent_hires['Exit_Date'].isna()]) / len(recent_hires) * 100) if len(recent_hires) > 0 else 0
+    
+    first_year_exits = len(recent_hires[~recent_hires['Exit_Date'].isna()])
+    first_year_rate = (first_year_exits / len(recent_hires) * 100) if len(recent_hires) > 0 else 0
+    
+    avg_promo_delay = 0
+    if len(promotions) > 0:
+        promo_with_hire = promotions.merge(employees[['ID', 'Hire_Date']], on='ID')
+        promo_with_hire['Delay_Years'] = (promo_with_hire['Promo_Date'] - promo_with_hire['Hire_Date']).dt.days / 365.25
+        avg_promo_delay = promo_with_hire['Delay_Years'].mean()
+    
+    # Score de risque par département
+    risk_scores = []
+    for dept in active['Department'].unique():
+        dept_active = len(active[active['Department'] == dept])
+        dept_exits = len(employees[(employees['Department'] == dept) & (~employees['Exit_Date'].isna())])
+        dept_turnover = (dept_exits / dept_active * 100) if dept_active > 0 else 0
+        
+        dept_sanctions = len(sanctions[sanctions['Department'] == dept])
+        sanction_rate = (dept_sanctions / dept_active * 100) if dept_active > 0 else 0
+        
+        dept_absences = absenteeism[absenteeism['Department'] == dept]['Absence_Rate'].mean() if dept in absenteeism['Department'].values else 0
+        
+        risk_score = (dept_turnover * 0.4) + (sanction_rate * 0.3) + (dept_absences * 0.3)
+        risk_level = "Low" if risk_score < 10 else "Medium" if risk_score < 20 else "High"
+        
+        risk_scores.append({
+            'Department': dept,
+            'Turnover': round(dept_turnover, 1),
+            'Sanctions': round(sanction_rate, 1),
+            'Absenteeism': round(dept_absences, 1),
+            'Risk_Score': round(risk_score, 1),
+            'Level': risk_level
+        })
+    
+    return {
+        'total_active': total_active,
+        'total_exits': total_exits,
+        'turnover_rate': turnover_rate,
+        'executive_count': len(executives),
+        'executive_leakage': executive_leakage,
+        'retention_quality': retention_quality,
+        'first_year_rate': first_year_rate,
+        'total_promotions': len(promotions),
+        'avg_promo_delay': avg_promo_delay,
+        'risk_scores': risk_scores,
+        'female_count': len(active[active['Gender'] == 'F']),
+        'male_count': len(active[active['Gender'] == 'M']),
+        'avg_survey_rate': surveys['Response_Rate'].mean(),
+        'avg_interview_rate': interviews['Completion_Rate'].mean()
+    }
+
+metrics = calculate_metrics()
+
+# Alertes à 30 jours
+alert_date = datetime.now() + timedelta(days=30)
+contract_alerts = expiring_contracts[expiring_contracts['End_Date'] <= alert_date]
+
+# ==================== SIDEBAR ====================
+with st.sidebar:
+    if LOGO_BASE64:
+        st.markdown(f"""
+        <div style="text-align: center; padding: 1rem 0;">
+            <img src="data:image/png;base64,{LOGO_BASE64}" style="width: 70px; height: 70px; border-radius: 50%; margin-bottom: 0.5rem;">
+            <h4 style="margin: 0; color: #2E86AB;">La Pratique</h4>
+            <p style="font-size: 0.7rem; opacity: 0.7;">Electronique</p>
+        </div>
+        """, unsafe_allow_html=True)
+    else:
+        st.markdown("""
+        <div style="text-align: center; padding: 1rem 0;">
+            <div style="font-size: 3rem;">🎯</div>
+            <h4 style="margin: 0;">HR Analytics</h4>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    st.markdown("---")
+    st.markdown(f"**👤 {st.session_state.current_user}**")
+    st.markdown(f"<span class='badge badge-success'>{st.session_state.user_role}</span>", unsafe_allow_html=True)
+    st.markdown("---")
+    
+    # Filtres
+    dept_filter = st.multiselect(
+        "🏢 Départements",
+        employees['Department'].unique(),
+        default=employees['Department'].unique()
+    )
+    
+    grade_filter = st.multiselect(
+        "⭐ Grades",
+        employees['Grade'].unique(),
+        default=employees['Grade'].unique()
+    )
+    
+    gender_filter = st.multiselect(
+        "👥 Genre",
+        employees['Gender'].unique(),
+        default=employees['Gender'].unique()
+    )
+    
+    st.markdown("---")
+    
+    # Navigation
+    nav_options = {
+        "🏠 Dashboard": "dashboard",
+        "📊 Analytics": "analytics",
+        "👥 People": "people",
+        "⚠️ Monitoring": "monitoring",
+        "⚙️ Settings": "settings"
+    }
+    
+    selected_page = st.radio(
+        "Navigation",
+        list(nav_options.keys()),
+        key="nav_radio"
+    )
+    current_page = nav_options[selected_page]
+    
+    st.markdown("---")
+    
+    if st.button("📄 Export Report", use_container_width=True):
+        st.info("Export en préparation...")
+    
+    if st.button("🚪 Logout", use_container_width=True):
+        st.session_state.logged_in = False
+        st.session_state.current_user = ""
+        st.rerun()
+    
+    st.markdown("---")
+    st.caption("© 2025 La Pratique Electronique")
+    st.caption("v3.0 - HR Intelligence")
+
+# ==================== PAGE DASHBOARD ====================
+if current_page == "dashboard":
     # En-tête
     st.markdown(f"""
-    <div class="dashboard-header">
-        <div class="dashboard-title">🎯 RH Analytics Dashboard</div>
-        <div class="dashboard-subtitle">Tableau de bord stratégique - Mise à jour {datetime.now().strftime('%d/%m/%Y %H:%M')}</div>
+    <div class="hr-header">
+        <div class="hr-title">
+            <h1>🎯 HR Performance Dashboard</h1>
+            <p>Vue d'ensemble des indicateurs clés - {datetime.now().strftime('%d %B %Y')}</p>
+        </div>
+        <div class="badge badge-success">🟢 Live Data</div>
     </div>
     """, unsafe_allow_html=True)
     
     # KPIs principaux
-    kpi_cols = st.columns(5)
+    col1, col2, col3, col4 = st.columns(4)
     
-    with kpi_cols[0]:
-        st.markdown(UIComponents.metric_card(
-            "Effectif Total",
-            f"{metrics['total_active']}",
-            icon="👥",
-            color=st.session_state.preferences['accent_color']
-        ), unsafe_allow_html=True)
-    
-    with kpi_cols[1]:
-        st.markdown(UIComponents.metric_card(
-            "Turnover",
-            f"{metrics['turnover_rate']:.1f}%",
-            icon="🔄",
-            color=st.session_state.preferences['accent_color']
-        ), unsafe_allow_html=True)
-    
-    with kpi_cols[2]:
-        st.markdown(UIComponents.metric_card(
-            "Cadres",
-            f"{metrics['executive_count']}",
-            icon="⭐",
-            color=st.session_state.preferences['accent_color']
-        ), unsafe_allow_html=True)
-    
-    with kpi_cols[3]:
-        st.markdown(UIComponents.metric_card(
-            "Promotions",
-            f"{metrics['total_promotions']}",
-            icon="📈",
-            color=st.session_state.preferences['accent_color']
-        ), unsafe_allow_html=True)
-    
-    with kpi_cols[4]:
-        st.markdown(UIComponents.metric_card(
-            "Départs",
-            f"{metrics['departures']}",
-            icon="🚪",
-            color=st.session_state.preferences['accent_color']
-        ), unsafe_allow_html=True)
-    
-    # Alertes automatiques
-    alerts = []
-    
-    if metrics['turnover_rate'] > 15:
-        alerts.append(('critical', f"Turnover élevé: {metrics['turnover_rate']:.1f}%", "Plan de rétention urgent"))
-    
-    if metrics['executive_turnover_rate'] > 10:
-        alerts.append(('warning', f"Turnover des cadres: {metrics['executive_turnover_rate']:.1f}%", "Audit des départs cadres"))
-    
-    if metrics['retention_quality'] < 80:
-        alerts.append(('warning', f"Qualité recrutement: {metrics['retention_quality']:.1f}%", "Revue processus onboarding"))
-    
-    if metrics['avg_response_rate'] < 50:
-        alerts.append(('warning', f"Participation enquêtes: {metrics['avg_response_rate']:.1f}%", "Campagne de relance"))
-    
-    # Contrats expirants
-    expiring = data['expiring_contracts']
-    expiring_soon = expiring[expiring['End_Date'] <= datetime.now() + timedelta(days=30)]
-    if len(expiring_soon) > 0:
-        alerts.append(('critical', f"{len(expiring_soon)} contrat(s) expirent dans 30 jours", "Contacter les responsables"))
-    
-    # Affichage des alertes
-    if alerts:
-        st.markdown("### 🚨 Alertes et Recommandations")
-        for alert_type, message, action in alerts:
-            st.markdown(UIComponents.alert_banner(alert_type, message, action), unsafe_allow_html=True)
-    
-    # Onglets principaux
-    tab1, tab2, tab3, tab4 = st.tabs(["📊 Vue d'ensemble", "👥 Personnel", "📈 Performances", "⚙️ Administration"])
-    
-    with tab1:
-        # Graphiques de synthèse
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            st.markdown('<div class="section-card">', unsafe_allow_html=True)
-            st.markdown('<div class="section-title">🏢 Répartition par département</div>', unsafe_allow_html=True)
-            
-            dept_dist = data['employees'][data['employees']['Exit_Date'].isna()]['Department'].value_counts()
-            fig = px.pie(values=dept_dist.values, names=dept_dist.index, 
-                         hole=0.4, color_discrete_sequence=px.colors.qualitative.Set2)
-            fig.update_layout(showlegend=True, height=400, margin=dict(t=0, l=0, r=0, b=0))
-            st.plotly_chart(fig, use_container_width=True)
-            st.markdown('</div>', unsafe_allow_html=True)
-        
-        with col2:
-            st.markdown('<div class="section-card">', unsafe_allow_html=True)
-            st.markdown('<div class="section-title">📈 Évolution mensuelle</div>', unsafe_allow_html=True)
-            
-            movements = data['movements']
-            fig = go.Figure()
-            fig.add_trace(go.Scatter(x=movements['Month'], y=movements['Hires'].cumsum(),
-                                     name='Entrées cumulées', fill='tozeroy', line=dict(color='#10B981', width=2)))
-            fig.add_trace(go.Scatter(x=movements['Month'], y=movements['Resignations'].cumsum(),
-                                     name='Sorties cumulées', fill='tozeroy', line=dict(color='#EF4444', width=2)))
-            fig.update_layout(height=400, margin=dict(t=0, l=0, r=0, b=0))
-            st.plotly_chart(fig, use_container_width=True)
-            st.markdown('</div>', unsafe_allow_html=True)
-        
-        # Turnover par département
-        st.markdown('<div class="section-card">', unsafe_allow_html=True)
-        st.markdown('<div class="section-title">🔄 Turnover par département</div>', unsafe_allow_html=True)
-        
-        fig = px.bar(metrics['dept_turnover'], x='Department', y='Turnover_Rate',
-                     text='Turnover_Rate', color='Turnover_Rate',
-                     color_continuous_scale=['#10B981', '#F59E0B', '#EF4444'])
-        fig.update_traces(texttemplate='%{text:.1f}%', textposition='outside')
-        fig.update_layout(height=400, xaxis_title="", yaxis_title="Taux de turnover (%)")
-        st.plotly_chart(fig, use_container_width=True)
-        st.markdown('</div>', unsafe_allow_html=True)
-    
-    with tab2:
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            st.markdown('<div class="section-card">', unsafe_allow_html=True)
-            st.markdown('<div class="section-title">👥 Distribution par niveau</div>', unsafe_allow_html=True)
-            
-            level_dist = data['employees'][data['employees']['Exit_Date'].isna()]['Level'].value_counts()
-            fig = px.bar(x=level_dist.index, y=level_dist.values, text=level_dist.values,
-                         color=level_dist.index, color_discrete_sequence=px.colors.qualitative.Set3)
-            fig.update_layout(showlegend=False, height=350, xaxis_title="", yaxis_title="Nombre")
-            st.plotly_chart(fig, use_container_width=True)
-            st.markdown('</div>', unsafe_allow_html=True)
-        
-        with col2:
-            st.markdown('<div class="section-card">', unsafe_allow_html=True)
-            st.markdown('<div class="section-title">⚧️ Parité Homme/Femme</div>', unsafe_allow_html=True)
-            
-            gender_dist = data['employees'][data['employees']['Exit_Date'].isna()]['Gender'].value_counts()
-            fig = px.pie(values=gender_dist.values, names=gender_dist.index,
-                         hole=0.3, color_discrete_sequence=['#3B82F6', '#EC4899'])
-            fig.update_layout(height=350, margin=dict(t=0, l=0, r=0, b=0))
-            st.plotly_chart(fig, use_container_width=True)
-            st.markdown('</div>', unsafe_allow_html=True)
-        
-        # Liste des employés
-        st.markdown('<div class="section-card">', unsafe_allow_html=True)
-        st.markdown('<div class="section-title">📋 Liste des employés actifs</div>', unsafe_allow_html=True)
-        
-        active_employees = data['employees'][data['employees']['Exit_Date'].isna()].copy()
-        active_employees_display = active_employees[['ID', 'Department', 'Level', 'Gender', 'Age', 'Performance_Score']].head(10)
-        st.dataframe(active_employees_display, use_container_width=True)
-        st.markdown('</div>', unsafe_allow_html=True)
-    
-    with tab3:
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            st.markdown('<div class="section-card">', unsafe_allow_html=True)
-            st.markdown('<div class="section-title">⭐ Évolution des promotions</div>', unsafe_allow_html=True)
-            
-            promotions_by_month = data['promotions'].groupby(data['promotions']['Promotion_Date'].dt.strftime('%b %Y')).size()
-            fig = px.line(x=promotions_by_month.index, y=promotions_by_month.values,
-                          markers=True, line_shape='spline')
-            fig.update_layout(height=350, xaxis_title="", yaxis_title="Nombre de promotions")
-            st.plotly_chart(fig, use_container_width=True)
-            st.markdown('</div>', unsafe_allow_html=True)
-        
-        with col2:
-            st.markdown('<div class="section-card">', unsafe_allow_html=True)
-            st.markdown('<div class="section-title">⏱️ Délai moyen de promotion</div>', unsafe_allow_html=True)
-            
-            fig = go.Figure(go.Indicator(
-                mode="gauge+number",
-                value=metrics['avg_promotion_delay'],
-                title={'text': "Années"},
-                gauge={'axis': {'range': [0, 8]},
-                       'bar': {'color': st.session_state.preferences['accent_color']},
-                       'steps': [
-                           {'range': [0, 2], 'color': '#D1FAE5'},
-                           {'range': [2, 4], 'color': '#FEF3C7'},
-                           {'range': [4, 8], 'color': '#FEE2E2'}
-                       ]}
-            ))
-            fig.update_layout(height=350)
-            st.plotly_chart(fig, use_container_width=True)
-            st.markdown('</div>', unsafe_allow_html=True)
-        
-        # Enquêtes et entretiens
-        st.markdown('<div class="section-card">', unsafe_allow_html=True)
-        st.markdown('<div class="section-title">📊 Participation aux enquêtes</div>', unsafe_allow_html=True)
-        
-        fig = go.Figure()
-        fig.add_trace(go.Bar(x=data['surveys']['Period'], y=data['surveys']['Sent'],
-                             name='Diffusés', marker_color='#94A3B8'))
-        fig.add_trace(go.Bar(x=data['surveys']['Period'], y=data['surveys']['Responses'],
-                             name='Réponses', marker_color=st.session_state.preferences['accent_color']))
-        fig.update_layout(barmode='group', height=400, xaxis_title="", yaxis_title="Nombre")
-        st.plotly_chart(fig, use_container_width=True)
-        st.markdown('</div>', unsafe_allow_html=True)
-        
-        # Taux de réponse
-        fig = px.line(data['surveys'], x='Period', y='Response_Rate',
-                      markers=True, line_shape='spline')
-        fig.add_hline(y=75, line_dash="dash", line_color="#10B981", annotation_text="Objectif")
-        fig.add_hline(y=50, line_dash="dash", line_color="#EF4444", annotation_text="Seuil critique")
-        fig.update_layout(height=350, yaxis_range=[0, 100])
-        st.plotly_chart(fig, use_container_width=True)
-    
-    with tab4:
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            st.markdown('<div class="section-card">', unsafe_allow_html=True)
-            st.markdown('<div class="section-title">⚖️ Sanctions disciplinaires</div>', unsafe_allow_html=True)
-            
-            sanctions_by_dept = data['disciplines'].groupby('Department').size().reset_index(name='Count')
-            fig = px.bar(sanctions_by_dept, x='Department', y='Count', text='Count',
-                         color='Count', color_continuous_scale='Oranges')
-            fig.update_layout(height=350, xaxis_title="", yaxis_title="Nombre de sanctions")
-            st.plotly_chart(fig, use_container_width=True)
-            st.markdown('</div>', unsafe_allow_html=True)
-        
-        with col2:
-            st.markdown('<div class="section-card">', unsafe_allow_html=True)
-            st.markdown('<div class="section-title">📋 Entretiens annuels</div>', unsafe_allow_html=True)
-            
-            fig = go.Figure()
-            fig.add_trace(go.Bar(x=data['interviews']['Year'], y=data['interviews']['Scheduled'],
-                                 name='Planifiés', marker_color='#94A3B8'))
-            fig.add_trace(go.Bar(x=data['interviews']['Year'], y=data['interviews']['Completed'],
-                                 name='Réalisés', marker_color=st.session_state.preferences['accent_color']))
-            fig.update_layout(barmode='group', height=350, xaxis_title="", yaxis_title="Nombre")
-            st.plotly_chart(fig, use_container_width=True)
-            st.markdown('</div>', unsafe_allow_html=True)
-        
-        # Absentéisme
-        st.markdown('<div class="section-card">', unsafe_allow_html=True)
-        st.markdown('<div class="section-title">📊 Absentéisme par département</div>', unsafe_allow_html=True)
-        
-        avg_absence = data['absenteeism'].groupby('Department')['Absence_Rate'].mean().reset_index()
-        fig = px.bar(avg_absence, x='Department', y='Absence_Rate', text='Absence_Rate',
-                     color='Absence_Rate', color_continuous_scale='Reds')
-        fig.add_hline(y=8, line_dash="dash", line_color="#EF4444", annotation_text="Seuil d'alerte")
-        fig.update_traces(texttemplate='%{text:.1f}%', textposition='outside')
-        fig.update_layout(height=400, xaxis_title="", yaxis_title="Taux d'absentéisme (%)")
-        st.plotly_chart(fig, use_container_width=True)
-        st.markdown('</div>', unsafe_allow_html=True)
-        
-        # Contrats expirant
-        st.markdown('<div class="section-card">', unsafe_allow_html=True)
-        st.markdown('<div class="section-title">📄 Contrats arrivant à expiration</div>', unsafe_allow_html=True)
-        
-        expiring_contracts = data['expiring_contracts']
-        expiring_contracts['Days_Left'] = (expiring_contracts['End_Date'] - datetime.now()).dt.days
-        expiring_contracts['Status'] = expiring_contracts['Days_Left'].apply(
-            lambda x: '🔴 Urgent' if x <= 30 else '🟡 Proche' if x <= 60 else '🟢 Normal'
-        )
-        st.dataframe(expiring_contracts[['Employee_ID', 'Department', 'End_Date', 'Days_Left', 'Status']], 
-                    use_container_width=True)
-        st.markdown('</div>', unsafe_allow_html=True)
-
-# ==================== SIDEBAR ====================
-def render_sidebar():
-    """Affiche la barre latérale"""
-    
-    with st.sidebar:
-        st.markdown("""
-        <div style="text-align: center; padding: 1rem 0;">
-            <div style="font-size: 3rem;">🎯</div>
-            <h3 style="margin: 0.5rem 0 0 0;">RH Analytics</h3>
-            <p style="font-size: 0.7rem; opacity: 0.7;">v2.0 - Business Intelligence</p>
+    with col1:
+        st.markdown(f"""
+        <div class="hr-card">
+            <div class="metric-label">👥 Effectif Total</div>
+            <div class="metric-value">{metrics['total_active']}</div>
+            <div class="trend-positive">▲ +{metrics['total_active']-12} cette année</div>
         </div>
         """, unsafe_allow_html=True)
-        
-        st.markdown("---")
-        
-        # Informations utilisateur
-        if st.session_state.user_data:
-            st.markdown(f"""
-            <div style="padding: 0.5rem; background: rgba(255,255,255,0.05); border-radius: 0.5rem; margin-bottom: 1rem;">
-                <div style="display: flex; align-items: center; gap: 0.5rem;">
-                    <div style="font-size: 2rem;">👤</div>
-                    <div>
-                        <div style="font-weight: 600;">{st.session_state.user_data.get('name', 'Utilisateur')}</div>
-                        <div style="font-size: 0.7rem; opacity: 0.7;">{st.session_state.user_data.get('role', 'user')}</div>
-                    </div>
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-        
-        # Navigation rapide
-        st.markdown("### 📍 Navigation")
-        quick_links = {
-            "🏠 Accueil": "overview",
-            "👥 Personnel": "employees",
-            "📈 Analytics": "analytics",
-            "⚙️ Paramètres": "settings"
-        }
-        
-        for label, key in quick_links.items():
-            if st.button(label, key=f"nav_{key}", use_container_width=True):
-                st.session_state.current_page = key
-        
-        st.markdown("---")
-        
-        # Filtres
-        st.markdown("### 🔍 Filtres")
-        
-        data = DataManager.load_all_data()
-        departments = ['Tous'] + list(data['employees']['Department'].unique())
-        selected_dept = st.selectbox("Département", departments, key="filter_dept")
-        
-        levels = ['Tous'] + list(data['employees']['Level'].unique())
-        selected_level = st.selectbox("Niveau", levels, key="filter_level")
-        
-        st.markdown("---")
-        
-        # Export
-        st.markdown("### 📎 Actions")
-        
-        if st.button("📥 Exporter rapport PDF", use_container_width=True):
-            st.info("Fonctionnalité à venir")
-        
-        if st.button("📧 Envoyer par email", use_container_width=True):
-            st.info("Fonctionnalité à venir")
-        
-        st.markdown("---")
-        
-        # Déconnexion
-        if st.button("🚪 Déconnexion", use_container_width=True):
-            st.session_state.auth_status = False
-            st.session_state.user_data = {}
-            st.rerun()
-        
-        st.markdown("---")
-        st.caption("© 2024 RH Analytics")
-        st.caption("Tous droits réservés")
-
-# ==================== PAGE PARAMÈTRES ====================
-def render_settings():
-    """Affiche la page des paramètres"""
     
+    with col2:
+        st.markdown(f"""
+        <div class="hr-card">
+            <div class="metric-label">🔄 Turnover</div>
+            <div class="metric-value">{metrics['turnover_rate']:.1f}%</div>
+            <div class="trend-negative">▼ Cible: &lt;15%</div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with col3:
+        st.markdown(f"""
+        <div class="hr-card">
+            <div class="metric-label">⭐ Promotions</div>
+            <div class="metric-value">{metrics['total_promotions']}</div>
+            <div class="trend-positive">▲ +33% vs 2023</div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with col4:
+        st.markdown(f"""
+        <div class="hr-card">
+            <div class="metric-label">🚪 Départs</div>
+            <div class="metric-value">{metrics['total_exits']}</div>
+            <div class="trend-negative">▼ -2 vs 2023</div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    st.markdown("<div class='section-divider'></div>", unsafe_allow_html=True)
+    
+    # Graphiques principaux
+    col_left, col_right = st.columns(2)
+    
+    with col_left:
+        # Répartition par département
+        filtered_employees = employees[
+            employees['Department'].isin(dept_filter) &
+            employees['Grade'].isin(grade_filter) &
+            employees['Gender'].isin(gender_filter) &
+            employees['Exit_Date'].isna()
+        ]
+        dept_dist = filtered_employees.groupby('Department').size().reset_index(name='Count')
+        
+        fig1 = px.pie(
+            dept_dist, 
+            values='Count', 
+            names='Department',
+            title="📊 Distribution par Département",
+            hole=0.4,
+            color_discrete_sequence=px.colors.qualitative.Set2
+        )
+        fig1.update_traces(textposition='inside', textinfo='percent+label')
+        fig1.update_layout(height=st.session_state.hr_settings["chart_height"])
+        st.plotly_chart(fig1, use_container_width=True)
+    
+    with col_right:
+        # Évolution des effectifs
+        cumulative_employees = []
+        for i in range(len(movements)):
+            cum_hires = movements['Hires'].iloc[:i+1].sum()
+            cum_exits = movements['Total_Exits'].iloc[:i+1].sum()
+            cumulative_employees.append(cum_hires - cum_exits)
+        
+        fig2 = px.area(
+            x=movements['Month'].dt.strftime('%b %Y'),
+            y=cumulative_employees,
+            title="📈 Évolution des Effectifs",
+            markers=True,
+            color_discrete_sequence=['#2E86AB']
+        )
+        fig2.update_layout(xaxis_title="Mois", yaxis_title="Effectif", height=st.session_state.hr_settings["chart_height"])
+        st.plotly_chart(fig2, use_container_width=True)
+    
+    st.markdown("<div class='section-divider'></div>", unsafe_allow_html=True)
+    
+    # Démographie
+    st.markdown("### 👥 Démographie RH")
+    demo_col1, demo_col2, demo_col3, demo_col4 = st.columns(4)
+    
+    with demo_col1:
+        st.markdown(f"""
+        <div class="hr-card">
+            <div class="metric-label">👨‍💼 Cadres</div>
+            <div class="metric-value">{metrics['executive_count']}</div>
+            <div>{metrics['executive_count']/metrics['total_active']*100:.0f}% du total</div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with demo_col2:
+        st.markdown(f"""
+        <div class="hr-card">
+            <div class="metric-label">👩 Femmes</div>
+            <div class="metric-value">{metrics['female_count']}</div>
+            <div>{metrics['female_count']/metrics['total_active']*100:.0f}% du total</div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with demo_col3:
+        st.markdown(f"""
+        <div class="hr-card">
+            <div class="metric-label">👨 Hommes</div>
+            <div class="metric-value">{metrics['male_count']}</div>
+            <div>{metrics['male_count']/metrics['total_active']*100:.0f}% du total</div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with demo_col4:
+        st.markdown(f"""
+        <div class="hr-card">
+            <div class="metric-label">📊 Taux Réponse</div>
+            <div class="metric-value">{metrics['avg_survey_rate']:.0f}%</div>
+            <div>Moyenne enquêtes</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+# ==================== PAGE ANALYTICS ====================
+elif current_page == "analytics":
     st.markdown("""
-    <div class="dashboard-header">
-        <div class="dashboard-title">⚙️ Paramètres et Configuration</div>
-        <div class="dashboard-subtitle">Personnalisez votre expérience</div>
+    <div class="hr-header">
+        <div class="hr-title">
+            <h1>📊 HR Analytics Avancé</h1>
+            <p>Analyse des mouvements et indicateurs stratégiques</p>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Mouvements
+    col1, col2, col3, col4 = st.columns(4)
+    with col1:
+        st.markdown(f"""
+        <div class="hr-card">
+            <div class="metric-label">📥 Entrées</div>
+            <div class="metric-value">{movements['Hires'].sum()}</div>
+        </div>
+        """, unsafe_allow_html=True)
+    with col2:
+        st.markdown(f"""
+        <div class="hr-card">
+            <div class="metric-label">📤 Sorties</div>
+            <div class="metric-value">{movements['Total_Exits'].sum()}</div>
+        </div>
+        """, unsafe_allow_html=True)
+    with col3:
+        st.markdown(f"""
+        <div class="hr-card">
+            <div class="metric-label">⚖️ Solde Net</div>
+            <div class="metric-value">{movements['Hires'].sum() - movements['Total_Exits'].sum()}</div>
+        </div>
+        """, unsafe_allow_html=True)
+    with col4:
+        st.markdown(f"""
+        <div class="hr-card">
+            <div class="metric-label">🔄 Turnover Global</div>
+            <div class="metric-value">{metrics['turnover_rate']:.1f}%</div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    # Graphique entrées/sorties
+    fig_mov = go.Figure()
+    fig_mov.add_trace(go.Bar(
+        x=movements['Month'].dt.strftime('%b %Y'),
+        y=movements['Hires'],
+        name='Entrées',
+        marker_color='#10b981',
+        text=movements['Hires'],
+        textposition='outside'
+    ))
+    fig_mov.add_trace(go.Bar(
+        x=movements['Month'].dt.strftime('%b %Y'),
+        y=movements['Total_Exits'],
+        name='Sorties',
+        marker_color='#ef4444',
+        text=movements['Total_Exits'],
+        textposition='outside'
+    ))
+    fig_mov.update_layout(
+        title="Entrées vs Sorties Mensuelles",
+        barmode='group',
+        height=st.session_state.hr_settings["chart_height"]
+    )
+    st.plotly_chart(fig_mov, use_container_width=True)
+    
+    # Motifs de sortie
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.markdown(f"""
+        <div class="hr-card">
+            <div class="metric-label">📝 Démissions</div>
+            <div class="metric-value">{movements['Resignations'].sum()}</div>
+        </div>
+        """, unsafe_allow_html=True)
+    with col2:
+        st.markdown(f"""
+        <div class="hr-card">
+            <div class="metric-label">👴 Retraites</div>
+            <div class="metric-value">{movements['Retirements'].sum()}</div>
+        </div>
+        """, unsafe_allow_html=True)
+    with col3:
+        st.markdown(f"""
+        <div class="hr-card">
+            <div class="metric-label">⚖️ Licenciements</div>
+            <div class="metric-value">{movements['Terminations'].sum()}</div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    # Turnover par département
+    st.markdown("### 📊 Turnover par Département")
+    turnover_dept = []
+    for dept in employees['Department'].unique():
+        dept_active = len(employees[(employees['Department'] == dept) & (employees['Exit_Date'].isna())])
+        dept_exits = len(employees[(employees['Department'] == dept) & (~employees['Exit_Date'].isna())])
+        rate = (dept_exits / dept_active * 100) if dept_active > 0 else 0
+        turnover_dept.append({'Département': dept, 'Turnover (%)': round(rate, 1), 'Départs': dept_exits})
+    
+    st.dataframe(pd.DataFrame(turnover_dept), use_container_width=True)
+    
+    # KPIs supplémentaires
+    st.markdown("### 🎯 Indicateurs Stratégiques")
+    
+    kpi_col1, kpi_col2 = st.columns(2)
+    
+    with kpi_col1:
+        fig_gauge1 = go.Figure(go.Indicator(
+            mode="gauge+number",
+            value=metrics['retention_quality'],
+            title={'text': "Qualité des Recrutements"},
+            gauge={
+                'axis': {'range': [0, 100]},
+                'bar': {'color': "#2E86AB"},
+                'steps': [
+                    {'range': [0, 50], 'color': '#fee2e2'},
+                    {'range': [50, 80], 'color': '#fed7aa'},
+                    {'range': [80, 100], 'color': '#d1fae5'}
+                ]
+            }
+        ))
+        fig_gauge1.update_layout(height=350)
+        st.plotly_chart(fig_gauge1, use_container_width=True)
+    
+    with kpi_col2:
+        fig_gauge2 = go.Figure(go.Indicator(
+            mode="gauge+number",
+            value=metrics['executive_leakage'],
+            title={'text': "Fuite des Cadres"},
+            gauge={
+                'axis': {'range': [0, 30]},
+                'bar': {'color': "#ef4444"},
+                'steps': [
+                    {'range': [0, 5], 'color': '#d1fae5'},
+                    {'range': [5, 10], 'color': '#fed7aa'},
+                    {'range': [10, 30], 'color': '#fee2e2'}
+                ]
+            }
+        ))
+        fig_gauge2.update_layout(height=350)
+        st.plotly_chart(fig_gauge2, use_container_width=True)
+    
+    # Départs première année
+    st.markdown("### 📊 Taux de Départ en Première Année")
+    if len(recent_hires) > 0:
+        first_year_rate = metrics['first_year_rate']
+        st.markdown(f"""
+        <div class="hr-card">
+            <div class="metric-value">{first_year_rate:.1f}%</div>
+            <div class="metric-label">Objectif: &lt; 20%</div>
+            <progress value="{first_year_rate}" max="100" style="width:100%; height:8px; border-radius:4px;"></progress>
+        </div>
+        """, unsafe_allow_html=True)
+
+# ==================== PAGE PEOPLE ====================
+elif current_page == "people":
+    st.markdown("""
+    <div class="hr-header">
+        <div class="hr-title">
+            <h1>👥 Gestion des Talents</h1>
+            <p>Promotions et mobilité interne</p>
+        </div>
     </div>
     """, unsafe_allow_html=True)
     
     col1, col2 = st.columns(2)
     
     with col1:
-        st.markdown('<div class="section-card">', unsafe_allow_html=True)
-        st.markdown('<div class="section-title">🎨 Apparence</div>', unsafe_allow_html=True)
-        
-        # Thème
-        theme = st.selectbox(
-            "Thème",
-            ["Clair", "Sombre"],
-            index=0 if st.session_state.preferences['theme'] == 'light' else 1
-        )
-        st.session_state.preferences['theme'] = 'light' if theme == 'Clair' else 'dark'
-        
-        # Couleur d'accent
-        accent_color = st.color_picker(
-            "Couleur principale",
-            st.session_state.preferences['accent_color']
-        )
-        st.session_state.preferences['accent_color'] = accent_color
-        
-        st.markdown('</div>', unsafe_allow_html=True)
-        
-        st.markdown('<div class="section-card">', unsafe_allow_html=True)
-        st.markdown('<div class="section-title">🔔 Notifications</div>', unsafe_allow_html=True)
-        
-        st.session_state.preferences['notifications'] = st.checkbox(
-            "Activer les notifications",
-            st.session_state.preferences['notifications']
-        )
-        
-        st.session_state.preferences['auto_refresh'] = st.checkbox(
-            "Actualisation automatique",
-            st.session_state.preferences['auto_refresh']
-        )
-        
-        st.markdown('</div>', unsafe_allow_html=True)
+        st.markdown(f"""
+        <div class="hr-card">
+            <div class="metric-label">⭐ Promotions</div>
+            <div class="metric-value">{metrics['total_promotions']}</div>
+            <div>Période 2024-2025</div>
+        </div>
+        """, unsafe_allow_html=True)
+        st.dataframe(promotions, use_container_width=True)
     
     with col2:
-        st.markdown('<div class="section-card">', unsafe_allow_html=True)
-        st.markdown('<div class="section-title">📊 Affichage</div>', unsafe_allow_html=True)
+        st.markdown(f"""
+        <div class="hr-card">
+            <div class="metric-label">⏱️ Délai Promotion</div>
+            <div class="metric-value">{metrics['avg_promo_delay']:.1f} ans</div>
+            <div class="trend-positive">Objectif: &lt; 3 ans</div>
+        </div>
+        """, unsafe_allow_html=True)
         
-        layout = st.selectbox(
-            "Disposition du dashboard",
-            ["Compact", "Confortable", "Large"],
-            index=["Compact", "Confortable", "Large"].index(
-                st.session_state.preferences.get('dashboard_layout', 'Compact')
-            )
+        st.markdown(f"""
+        <div class="hr-card">
+            <div class="metric-label">🔄 Mobilité Interne</div>
+            <div class="metric-value">{metrics['total_promotions']}</div>
+            <div>Changements de poste</div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    if metrics['total_promotions'] > 0:
+        promo_by_year = promotions.groupby(promotions['Promo_Date'].dt.year).size().reset_index(name='Count')
+        promo_by_year.columns = ['Année', 'Nombre']
+        fig = px.bar(
+            promo_by_year,
+            x='Année',
+            y='Nombre',
+            title="Évolution des Promotions",
+            text='Nombre',
+            color_discrete_sequence=['#2E86AB']
         )
-        st.session_state.preferences['dashboard_layout'] = layout.lower()
-        
-        charts_per_row = st.slider("Graphiques par ligne", 1, 4, 2)
-        st.session_state.preferences['charts_per_row'] = charts_per_row
-        
-        st.markdown('</div>', unsafe_allow_html=True)
-        
-        st.markdown('<div class="section-card">', unsafe_allow_html=True)
-        st.markdown('<div class="section-title">💾 Données</div>', unsafe_allow_html=True)
-        
-        if st.button("🔄 Rafraîchir les données", use_container_width=True):
-            st.cache_data.clear()
-            st.success("✅ Données rafraîchies avec succès!")
-            time.sleep(1)
+        fig.update_traces(textposition='outside')
+        st.plotly_chart(fig, use_container_width=True)
+
+# ==================== PAGE MONITORING ====================
+elif current_page == "monitoring":
+    st.markdown("""
+    <div class="hr-header">
+        <div class="hr-title">
+            <h1>⚠️ Système de Monitoring</h1>
+            <p>Alertes et surveillance des risques</p>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Score de risque
+    st.markdown("### 🎯 Score de Risque par Département")
+    risk_df = pd.DataFrame(metrics['risk_scores'])
+    st.dataframe(risk_df, use_container_width=True)
+    
+    fig_risk = px.bar(
+        risk_df,
+        x='Department',
+        y='Risk_Score',
+        title="Niveau de Risque par Département",
+        color='Risk_Score',
+        color_continuous_scale=['#10b981', '#f59e0b', '#ef4444'],
+        text='Risk_Score'
+    )
+    fig_risk.update_traces(textposition='outside')
+    st.plotly_chart(fig_risk, use_container_width=True)
+    
+    # Alertes
+    st.markdown("### 🚨 Alertes Actives")
+    
+    alerts = []
+    
+    if metrics['turnover_rate'] > 15:
+        alerts.append(("CRITICAL", f"Turnover élevé: {metrics['turnover_rate']:.1f}%", "Plan de rétention immédiat"))
+    if metrics['executive_leakage'] > 10:
+        alerts.append(("CRITICAL", f"Fuite des cadres: {metrics['executive_leakage']:.1f}%", "Entretiens de départ obligatoires"))
+    elif metrics['executive_leakage'] > 5:
+        alerts.append(("WARNING", f"Fuite des cadres: {metrics['executive_leakage']:.1f}%", "Surveillance renforcée"))
+    if metrics['retention_quality'] < 80:
+        alerts.append(("WARNING", f"Qualité recrutements: {metrics['retention_quality']:.1f}%", "Réviser processus d'intégration"))
+    if metrics['first_year_rate'] > 20:
+        alerts.append(("CRITICAL", f"Départs 1ère année: {metrics['first_year_rate']:.1f}%", "Audit du programme d'onboarding"))
+    if metrics['avg_survey_rate'] < 50:
+        alerts.append(("WARNING", f"Taux réponse enquêtes: {metrics['avg_survey_rate']:.1f}%", "Campagne de relance"))
+    if metrics['avg_interview_rate'] < 80:
+        alerts.append(("WARNING", f"Entretiens annuels: {metrics['avg_interview_rate']:.1f}%", "Planifier les entretiens manquants"))
+    
+    for risk in metrics['risk_scores']:
+        if risk['Risk_Score'] > 15:
+            alerts.append(("CRITICAL", f"Département {risk['Department']} à risque: Score {risk['Risk_Score']}", "Diagnostic approfondi"))
+    
+    if len(contract_alerts) > 0:
+        alerts.append(("WARNING", f"{len(contract_alerts)} contrat(s) expirent dans 30 jours", "Contacter les responsables"))
+    
+    if alerts:
+        for level, message, action in alerts:
+            if level == "CRITICAL":
+                st.markdown(f"""
+                <div class="alert-box-critical">
+                    🚨 {message}<br>
+                    📋 Action recommandée: {action}
+                </div>
+                """, unsafe_allow_html=True)
+            else:
+                st.markdown(f"""
+                <div class="alert-box-warning">
+                    ⚠️ {message}<br>
+                    📋 Action recommandée: {action}
+                </div>
+                """, unsafe_allow_html=True)
+    else:
+        st.markdown("""
+        <div class="alert-box-success">
+            ✅ Aucune alerte critique - Tous les indicateurs sont sous contrôle
+        </div>
+        """, unsafe_allow_html=True)
+    
+    # Contrats expirant
+    if len(contract_alerts) > 0:
+        st.markdown("### 📄 Contrats à Échéance Proche")
+        st.dataframe(contract_alerts, use_container_width=True)
+    
+    # Sanctions
+    st.markdown("### ⚖️ Sanctions Disciplinaires")
+    col1, col2 = st.columns(2)
+    with col1:
+        st.dataframe(sanctions, use_container_width=True)
+    with col2:
+        sanctions_by_dept = sanctions.groupby('Department').size().reset_index(name='Count')
+        fig = px.pie(
+            sanctions_by_dept,
+            values='Count',
+            names='Department',
+            title="Sanctions par Département",
+            hole=0.4
+        )
+        st.plotly_chart(fig, use_container_width=True)
+    
+    # Absentéisme
+    st.markdown("### 📊 Absentéisme par Département")
+    fig_abs = px.bar(
+        absenteeism,
+        x='Department',
+        y='Absence_Rate',
+        title="Taux d'Absentéisme",
+        text='Absence_Rate',
+        color='Absence_Rate',
+        color_continuous_scale=['#10b981', '#f59e0b', '#ef4444']
+    )
+    fig_abs.add_hline(y=8, line_dash="dash", line_color="#ef4444", annotation_text="Seuil d'alerte 8%")
+    st.plotly_chart(fig_abs, use_container_width=True)
+
+# ==================== PAGE SETTINGS ====================
+elif current_page == "settings":
+    st.markdown("""
+    <div class="hr-header">
+        <div class="hr-title">
+            <h1>⚙️ Paramètres</h1>
+            <p>Configuration de l'application</p>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Profil utilisateur
+    st.markdown("""
+    <div class="config-panel">
+        <div class="panel-title">👤 Profil Utilisateur</div>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        st.text_input("Nom d'utilisateur", value=st.session_state.current_user, disabled=True)
+        st.text_input("Email", value="contact@pratique-electronique.com")
+    with col2:
+        st.selectbox("Rôle", [st.session_state.user_role], disabled=True)
+        lang = st.selectbox("Langue", ["Français", "English", "العربية"], index=0)
+    
+    # Apparence
+    st.markdown("""
+    <div class="config-panel">
+        <div class="panel-title">🎨 Apparence</div>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        new_theme = st.selectbox("Thème", ["light", "dark"], index=0 if st.session_state.hr_settings["theme_mode"] == "light" else 1)
+        if new_theme != st.session_state.hr_settings["theme_mode"]:
+            st.session_state.hr_settings["theme_mode"] = new_theme
             st.rerun()
         
-        st.caption(f"Dernière mise à jour: {st.session_state.last_refresh.strftime('%d/%m/%Y %H:%M:%S')}")
+        new_color = st.color_picker("Couleur principale", st.session_state.hr_settings["accent_color"])
+        st.session_state.hr_settings["accent_color"] = new_color
+    with col2:
+        new_font = st.selectbox("Police", ["sans-serif", "serif", "monospace"])
+        st.session_state.hr_settings["font_style"] = new_font
         
-        st.markdown('</div>', unsafe_allow_html=True)
+        chart_h = st.slider("Hauteur des graphiques", 300, 600, st.session_state.hr_settings["chart_height"])
+        st.session_state.hr_settings["chart_height"] = chart_h
     
-    # Réinitialisation
-    st.markdown('<div class="section-card">', unsafe_allow_html=True)
-    st.markdown('<div class="section-title">⚠️ Zone dangereuse</div>', unsafe_allow_html=True)
+    # Notifications
+    st.markdown("""
+    <div class="config-panel">
+        <div class="panel-title">🔔 Notifications</div>
+    </div>
+    """, unsafe_allow_html=True)
     
-    if st.button("🔄 Réinitialiser tous les paramètres", use_container_width=True):
-        st.session_state.preferences = {
-            'theme': 'light',
-            'accent_color': '#FF6B35',
-            'notifications': True,
-            'auto_refresh': False,
-            'dashboard_layout': 'compact'
-        }
-        st.success("✅ Paramètres réinitialisés!")
-        time.sleep(1)
-        st.rerun()
+    col1, col2 = st.columns(2)
+    with col1:
+        enable_alerts = st.checkbox("Alertes turnover élevé", value=st.session_state.hr_settings["enable_alerts"])
+        st.session_state.hr_settings["enable_alerts"] = enable_alerts
+        
+        contract_alert = st.checkbox("Alertes contrats expirant", value=st.session_state.hr_settings["contract_alerts"])
+        st.session_state.hr_settings["contract_alerts"] = contract_alert
+    with col2:
+        auto_rep = st.checkbox("Rapport mensuel automatique", value=st.session_state.hr_settings["auto_report"])
+        st.session_state.hr_settings["auto_report"] = auto_rep
+        
+        notify = st.checkbox("Notifications email", value=st.session_state.hr_settings["notify_email"])
+        st.session_state.hr_settings["notify_email"] = notify
     
-    st.markdown('</div>', unsafe_allow_html=True)
+    # Base de données
+    st.markdown("""
+    <div class="config-panel">
+        <div class="panel-title">💾 Base de Données</div>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        data_source = st.selectbox("Source de données", ["Fichier local (CSV)", "Excel", "SQLite", "PostgreSQL", "API REST"])
+        if data_source != "Fichier local (CSV)":
+            st.info("Configuration pour d'autres sources - À venir")
+    
+    with col2:
+        refresh_mode = st.radio("Mode de mise à jour", ["Automatique", "Manuelle"], horizontal=True)
+    
+    # Statistiques
+    st.markdown("---")
+    st.markdown("### 📊 Statistiques Système")
+    
+    stat_col1, stat_col2, stat_col3, stat_col4 = st.columns(4)
+    with stat_col1:
+        st.metric("Employés", len(employees))
+    with stat_col2:
+        st.metric("Départements", len(employees['Department'].unique()))
+    with stat_col3:
+        st.metric("Promotions", metrics['total_promotions'])
+    with stat_col4:
+        st.metric("Départs", metrics['total_exits'])
+    
+    # Synchronisation
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        if st.button("🔄 Synchroniser les données", use_container_width=True):
+            with st.spinner("Synchronisation en cours..."):
+                time.sleep(1.5)
+                st.cache_data.clear()
+                employees, movements, promotions, surveys, interviews, sanctions, absenteeism, expiring_contracts = load_hr_data()
+                metrics = calculate_metrics()
+                st.session_state.hr_settings["last_refresh"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                st.success(f"✅ Synchronisation terminée - {datetime.now().strftime('%H:%M:%S')}")
+                time.sleep(1)
+                st.rerun()
+    
+    st.caption(f"📅 Dernière synchronisation: {st.session_state.hr_settings['last_refresh']}")
 
-# ==================== POINT D'ENTRÉE PRINCIPAL ====================
-def main():
-    """Point d'entrée principal de l'application"""
-    
-    # Chargement des styles
-    load_styles()
-    
-    # Vérification de l'authentification
-    if not st.session_state.auth_status:
-        show_auth_page()
-        return
-    
-    # Sidebar
-    render_sidebar()
-    
-    # Contenu principal
-    if not hasattr(st.session_state, 'current_page') or st.session_state.current_page == 'overview':
-        render_dashboard()
-    elif st.session_state.current_page == 'settings':
-        render_settings()
-    else:
-        render_dashboard()
-
-if __name__ == "__main__":
-    main()
+# ==================== FOOTER ====================
+st.markdown("---")
+st.markdown(
+    "<p style='text-align: center; color: #64748b; font-size: 0.75rem;'>"
+    "🎓 La Pratique Electronique | HR Analytics Platform | Projet PFE - Souha Ferjani | Business Intelligence"
+    "</p>",
+    unsafe_allow_html=True
+)
